@@ -1,5 +1,7 @@
 package com.saferide.controller;
 
+import com.saferide.dto.LoginRequest;
+import com.saferide.dto.LoginResponse;
 import com.saferide.dto.RegisterRequest;
 import com.saferide.dto.UserResponse;
 import com.saferide.entity.User;
@@ -34,5 +36,15 @@ public class AuthController {
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> loginUser(
+            @Valid @RequestBody LoginRequest request
+    ) {
+
+        LoginResponse response = authService.loginUser(request);
+
+        return ResponseEntity.ok(response);
     }
 }

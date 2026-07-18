@@ -1,5 +1,7 @@
 package com.saferide.serviceimpl;
 
+import com.saferide.dto.LoginRequest;
+import com.saferide.dto.LoginResponse;
 import com.saferide.dto.RegisterRequest;
 import com.saferide.entity.User;
 import com.saferide.exception.EmailAlreadyExistsException;
@@ -36,5 +38,26 @@ public class AuthServiceImpl implements AuthService {
         user.setRole(request.getRole());
 
         return userRepository.save(user);
+    }
+
+    @Override
+    public LoginResponse loginUser(LoginRequest request) {
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() ->
+                        new RuntimeException("Invalid email or password")
+                );
+
+        if (!passwordEncoder.matches(
+                request.getPassword(),
+                user.getPassword()
+        )) {
+            throw new RuntimeException("Invalid email or password");
+        }
+
+        return new LoginResponse(
+                "JWT_TOKEN_WILL_COME_HERE",
+                "Login Successful"
+        );
     }
 }
