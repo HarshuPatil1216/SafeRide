@@ -6,6 +6,7 @@ import com.saferide.dto.RegisterRequest;
 import com.saferide.entity.User;
 import com.saferide.exception.EmailAlreadyExistsException;
 import com.saferide.repository.UserRepository;
+import com.saferide.security.JwtService;
 import com.saferide.service.AuthService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,26 +16,34 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public AuthServiceImpl(
             UserRepository userRepository,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     @Override
     public User registerUser(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new EmailAlreadyExistsException("Email already registered");
+            throw new EmailAlreadyExistsException(
+                    "Email already registered"
+            );
         }
 
         User user = new User();
+
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setPassword(
+                passwordEncoder.encode(request.getPassword())
+        );
         user.setRole(request.getRole());
 
         return userRepository.save(user);
@@ -45,18 +54,28 @@ public class AuthServiceImpl implements AuthService {
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() ->
-                        new RuntimeException("Invalid email or password")
+                        new RuntimeException(
+                                "Invalid email or password"
+                        )
                 );
 
-        if (!passwordEncoder.matches(
+        boolean passwordMatches = passwordEncoder.matches(
                 request.getPassword(),
                 user.getPassword()
-        )) {
-            throw new RuntimeException("Invalid email or password");
+        );
+
+        if (!passwordMatches) {
+            throw new RuntimeException(
+                    "Invalid email or password"
+            );
         }
 
+        String token = jwtService.generateToken(
+                user.getEmail()
+        );
+
         return new LoginResponse(
-                "JWT_TOKEN_WILL_COME_HERE",
+                token,
                 "Login Successful"
         );
     }
