@@ -2,6 +2,7 @@ package com.saferide.serviceimpl;
 
 import com.saferide.dto.RegisterRequest;
 import com.saferide.entity.User;
+import com.saferide.exception.EmailAlreadyExistsException;
 import com.saferide.repository.UserRepository;
 import com.saferide.service.AuthService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,7 +26,7 @@ public class AuthServiceImpl implements AuthService {
     public User registerUser(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already registered");
+            throw new EmailAlreadyExistsException("Email already registered");
         }
 
         User user = new User();
