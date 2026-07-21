@@ -46,7 +46,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String authorizationHeader = request.getHeader("Authorization");
+        String authorizationHeader =
+                request.getHeader("Authorization");
 
         if (authorizationHeader == null
                 || !authorizationHeader.startsWith("Bearer ")) {
@@ -60,36 +61,38 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String email = jwtService.extractEmail(token);
 
-            if (SecurityContextHolder.getContext().getAuthentication() == null) {
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() ->
+                            new RuntimeException("User not found")
+                    );
 
-                User user = userRepository.findByEmail(email)
-                        .orElseThrow(() ->
-                                new RuntimeException("User not found")
+            if (jwtService.isTokenValid(token, user.getEmail())) {
+
+                SimpleGrantedAuthority authority =
+                        new SimpleGrantedAuthority(
+                                "ROLE_" + user.getRole().name()
                         );
 
-                if (jwtService.isTokenValid(token, user.getEmail())) {
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(
+                                user.getEmail(),
+                                null,
+                                List.of(authority)
+                        );
 
-                    SimpleGrantedAuthority authority =
-                            new SimpleGrantedAuthority(
-                                    "ROLE_" + user.getRole().name()
-                            );
-
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(
-                                    user.getEmail(),
-                                    null,
-                                    List.of(authority)
-                            );
-
-                    SecurityContextHolder
-                            .getContext()
-                            .setAuthentication(authentication);
-                }
+                SecurityContextHolder
+                        .getContext()
+                        .setAuthentication(authentication);
             }
 
         } catch (Exception exception) {
 
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            SecurityContextHolder.clearContext();
+
+            response.setStatus(
+                    HttpServletResponse.SC_UNAUTHORIZED
+            );
+
             response.setContentType("application/json");
 
             response.getWriter().write(

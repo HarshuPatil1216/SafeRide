@@ -14,15 +14,15 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(EmailAlreadyExistsException.class)
-    public ResponseEntity<Map<String, Object>> handleEmailAlreadyExists(
+    public ResponseEntity<ApiErrorResponse> handleEmailAlreadyExists(
             EmailAlreadyExistsException exception
     ) {
-        Map<String, Object> response = new LinkedHashMap<>();
-
-        response.put("timestamp", LocalDateTime.now());
-        response.put("status", HttpStatus.CONFLICT.value());
-        response.put("error", "Conflict");
-        response.put("message", exception.getMessage());
+        ApiErrorResponse response = new ApiErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.CONFLICT.value(),
+                "Conflict",
+                exception.getMessage()
+        );
 
         return ResponseEntity
                 .status(HttpStatus.CONFLICT)
@@ -33,26 +33,70 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleValidationErrors(
             MethodArgumentNotValidException exception
     ) {
-        Map<String, String> fieldErrors = new LinkedHashMap<>();
+        Map<String, String> messages = new LinkedHashMap<>();
 
         exception.getBindingResult()
                 .getFieldErrors()
                 .forEach(error ->
-                        fieldErrors.put(
+                        messages.put(
                                 error.getField(),
                                 error.getDefaultMessage()
                         )
                 );
 
         Map<String, Object> response = new LinkedHashMap<>();
-
         response.put("timestamp", LocalDateTime.now());
         response.put("status", HttpStatus.BAD_REQUEST.value());
         response.put("error", "Validation Failed");
-        response.put("messages", fieldErrors);
+        response.put("messages", messages);
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(response);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ApiErrorResponse> handleRuntimeException(
+            RuntimeException exception
+    ) {
+        HttpStatus status = determineStatus(exception.getMessage());
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                LocalDateTime.now(),
+                status.value(),
+                status.getReasonPhrase(),
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(status)
+                .body(response);
+    }
+
+    private HttpStatus determineStatus(String message) {
+
+        if (message == null) {
+            return HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+
+        if (message.contains("not found")) {
+            return HttpStatus.NOT_FOUND;
+        }
+
+        if (message.contains("already exists")
+                || message.contains("already registered")) {
+            return HttpStatus.CONFLICT;
+        }
+
+        if (message.contains("Only scheduled ride")
+                || message.contains("Only in-progress ride")) {
+            return HttpStatus.BAD_REQUEST;
+        }
+
+        if (message.contains("Invalid email or password")) {
+            return HttpStatus.UNAUTHORIZED;
+        }
+
+        return HttpStatus.BAD_REQUEST;
     }
 }

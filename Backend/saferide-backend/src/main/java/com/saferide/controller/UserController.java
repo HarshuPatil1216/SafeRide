@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -19,24 +20,12 @@ public class UserController {
         this.userRepository = userRepository;
     }
 
-    @GetMapping("/me")
-    public ResponseEntity<UserResponse> getCurrentUser(
+    @GetMapping("/authorities")
+    public ResponseEntity<Object> getAuthorities(
             Authentication authentication
     ) {
-        String email = authentication.getName();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new RuntimeException("User not found")
-                );
-
-        UserResponse response = new UserResponse(
-                user.getId(),
-                user.getFullName(),
-                user.getEmail(),
-                user.getRole()
+        return ResponseEntity.ok(
+                authentication.getAuthorities()
         );
-
-        return ResponseEntity.ok(response);
     }
 }
