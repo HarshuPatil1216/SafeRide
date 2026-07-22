@@ -2,14 +2,26 @@ package com.saferide.service;
 
 import com.saferide.dto.CreateDriverRequest;
 import com.saferide.dto.DriverResponse;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
 
 public interface DriverService {
 
     DriverResponse createDriver(CreateDriverRequest request);
 
-    List<DriverResponse> getAllDrivers();
+    Page<DriverResponse> getAllDrivers(
+            int page,
+            int size,
+            String sortBy,
+            String sortDir
+    );
+
+    Page<DriverResponse> searchDrivers(
+            String query,
+            int page,
+            int size,
+            String sortBy,
+            String sortDir
+    );
 
     DriverResponse getDriverById(Long id);
 

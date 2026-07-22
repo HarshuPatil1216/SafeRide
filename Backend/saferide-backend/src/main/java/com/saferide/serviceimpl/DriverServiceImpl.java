@@ -5,9 +5,11 @@ import com.saferide.dto.DriverResponse;
 import com.saferide.entity.Driver;
 import com.saferide.repository.DriverRepository;
 import com.saferide.service.DriverService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class DriverServiceImpl implements DriverService {
@@ -47,12 +49,49 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    public List<DriverResponse> getAllDrivers() {
+    public Page<DriverResponse> getAllDrivers(
+            int page,
+            int size,
+            String sortBy,
+            String sortDir
+    ) {
 
-        return driverRepository.findAll()
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
+        Sort sort = createSort(sortBy, sortDir);
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                sort
+        );
+
+        return driverRepository.findAll(pageable)
+                .map(this::mapToResponse);
+    }
+
+    @Override
+    public Page<DriverResponse> searchDrivers(
+            String query,
+            int page,
+            int size,
+            String sortBy,
+            String sortDir
+    ) {
+
+        Sort sort = createSort(sortBy, sortDir);
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                sort
+        );
+
+        return driverRepository
+                .findByFullNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+                        query,
+                        query,
+                        pageable
+                )
+                .map(this::mapToResponse);
     }
 
     @Override
@@ -77,6 +116,25 @@ public class DriverServiceImpl implements DriverService {
                         new RuntimeException("Driver not found")
                 );
 
+        if (!driver.getEmail().equalsIgnoreCase(request.getEmail())
+                && driverRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Driver email already exists");
+        }
+
+        if (!driver.getPhone().equals(request.getPhone())
+                && driverRepository.existsByPhone(request.getPhone())) {
+            throw new RuntimeException("Phone number already exists");
+        }
+
+        if (!driver.getLicenseNumber().equalsIgnoreCase(
+                request.getLicenseNumber()
+        )
+                && driverRepository.existsByLicenseNumber(
+                request.getLicenseNumber()
+        )) {
+            throw new RuntimeException("License number already exists");
+        }
+
         driver.setFullName(request.getFullName());
         driver.setEmail(request.getEmail());
         driver.setPhone(request.getPhone());
@@ -98,6 +156,18 @@ public class DriverServiceImpl implements DriverService {
                 );
 
         driverRepository.delete(driver);
+    }
+
+    private Sort createSort(
+            String sortBy,
+            String sortDir
+    ) {
+
+        if ("desc".equalsIgnoreCase(sortDir)) {
+            return Sort.by(sortBy).descending();
+        }
+
+        return Sort.by(sortBy).ascending();
     }
 
     private DriverResponse mapToResponse(Driver driver) {
