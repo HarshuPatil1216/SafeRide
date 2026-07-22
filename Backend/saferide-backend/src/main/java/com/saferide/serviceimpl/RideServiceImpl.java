@@ -10,10 +10,13 @@ import com.saferide.repository.DriverRepository;
 import com.saferide.repository.RideRepository;
 import com.saferide.repository.VehicleRepository;
 import com.saferide.service.RideService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 public class RideServiceImpl implements RideService {
@@ -35,15 +38,20 @@ public class RideServiceImpl implements RideService {
     @Override
     public RideResponse createRide(CreateRideRequest request) {
 
-        Driver driver = driverRepository.findById(request.getDriverId())
+        Driver driver = driverRepository
+                .findById(request.getDriverId())
                 .orElseThrow(() ->
-                        new RuntimeException("Driver not found"));
+                        new RuntimeException("Driver not found")
+                );
 
-        Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
+        Vehicle vehicle = vehicleRepository
+                .findById(request.getVehicleId())
                 .orElseThrow(() ->
-                        new RuntimeException("Vehicle not found"));
+                        new RuntimeException("Vehicle not found")
+                );
 
         Ride ride = new Ride();
+
         ride.setDriver(driver);
         ride.setVehicle(vehicle);
         ride.setSource(request.getSource());
@@ -56,16 +64,37 @@ public class RideServiceImpl implements RideService {
     }
 
     @Override
-    public List<RideResponse> getAllRides() {
+    public Page<RideResponse> getAllRides(
+            int page,
+            int size,
+            String sortBy,
+            String sortDir
+    ) {
 
-        return rideRepository.findAll()
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
-    }    @Override
+        Sort sort;
+
+        if ("desc".equalsIgnoreCase(sortDir)) {
+            sort = Sort.by(sortBy).descending();
+        } else {
+            sort = Sort.by(sortBy).ascending();
+        }
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                sort
+        );
+
+        return rideRepository
+                .findAll(pageable)
+                .map(this::mapToResponse);
+    }
+
+    @Override
     public RideResponse getRideById(Long id) {
 
-        Ride ride = rideRepository.findById(id)
+        Ride ride = rideRepository
+                .findById(id)
                 .orElseThrow(() ->
                         new RuntimeException("Ride not found")
                 );
@@ -76,7 +105,8 @@ public class RideServiceImpl implements RideService {
     @Override
     public RideResponse startRide(Long id) {
 
-        Ride ride = rideRepository.findById(id)
+        Ride ride = rideRepository
+                .findById(id)
                 .orElseThrow(() ->
                         new RuntimeException("Ride not found")
                 );
@@ -98,7 +128,8 @@ public class RideServiceImpl implements RideService {
     @Override
     public RideResponse endRide(Long id) {
 
-        Ride ride = rideRepository.findById(id)
+        Ride ride = rideRepository
+                .findById(id)
                 .orElseThrow(() ->
                         new RuntimeException("Ride not found")
                 );
@@ -120,7 +151,8 @@ public class RideServiceImpl implements RideService {
     @Override
     public void deleteRide(Long id) {
 
-        Ride ride = rideRepository.findById(id)
+        Ride ride = rideRepository
+                .findById(id)
                 .orElseThrow(() ->
                         new RuntimeException("Ride not found")
                 );

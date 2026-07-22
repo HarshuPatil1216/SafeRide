@@ -7,12 +7,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/rides")
@@ -54,19 +53,29 @@ public class RideController {
     }
 
     @Operation(
-            summary = "Get all rides",
-            description = "Returns all rides available in the system"
+            summary = "Get all rides with pagination and sorting",
+            description = "Returns rides page-wise with configurable page size and sorting"
     )
     @ApiResponse(
             responseCode = "200",
-            description = "Rides returned successfully"
+            description = "Paged rides returned successfully"
     )
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping
-    public ResponseEntity<List<RideResponse>> getAllRides() {
-        return ResponseEntity.ok(
-                rideService.getAllRides()
+    public ResponseEntity<Page<RideResponse>> getAllRides(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir
+    ) {
+        Page<RideResponse> rides = rideService.getAllRides(
+                page,
+                size,
+                sortBy,
+                sortDir
         );
+
+        return ResponseEntity.ok(rides);
     }
 
     @Operation(
