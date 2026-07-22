@@ -5,27 +5,38 @@ import com.saferide.dto.VehicleResponse;
 import com.saferide.entity.Vehicle;
 import com.saferide.repository.VehicleRepository;
 import com.saferide.service.VehicleService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class VehicleServiceImpl implements VehicleService {
 
     private final VehicleRepository vehicleRepository;
 
-    public VehicleServiceImpl(VehicleRepository vehicleRepository) {
+    public VehicleServiceImpl(
+            VehicleRepository vehicleRepository
+    ) {
         this.vehicleRepository = vehicleRepository;
     }
 
     @Override
-    public VehicleResponse createVehicle(CreateVehicleRequest request) {
+    public VehicleResponse createVehicle(
+            CreateVehicleRequest request
+    ) {
 
-        if (vehicleRepository.existsByVehicleNumber(request.getVehicleNumber())) {
-            throw new RuntimeException("Vehicle number already exists");
+        if (vehicleRepository.existsByVehicleNumber(
+                request.getVehicleNumber()
+        )) {
+            throw new RuntimeException(
+                    "Vehicle number already exists"
+            );
         }
 
         Vehicle vehicle = new Vehicle();
+
         vehicle.setVehicleNumber(request.getVehicleNumber());
         vehicle.setVehicleType(request.getVehicleType());
         vehicle.setCapacity(request.getCapacity());
@@ -33,26 +44,75 @@ public class VehicleServiceImpl implements VehicleService {
         vehicle.setManufacturer(request.getManufacturer());
         vehicle.setStatus(request.getStatus());
 
-        Vehicle savedVehicle = vehicleRepository.save(vehicle);
+        Vehicle savedVehicle =
+                vehicleRepository.save(vehicle);
 
         return mapToResponse(savedVehicle);
     }
 
     @Override
-    public List<VehicleResponse> getAllVehicles() {
+    public Page<VehicleResponse> getAllVehicles(
+            int page,
+            int size,
+            String sortBy,
+            String sortDir
+    ) {
 
-        return vehicleRepository.findAll()
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
+        Sort sort = createSort(
+                sortBy,
+                sortDir
+        );
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                sort
+        );
+
+        return vehicleRepository
+                .findAll(pageable)
+                .map(this::mapToResponse);
+    }
+
+    @Override
+    public Page<VehicleResponse> searchVehicles(
+            String query,
+            int page,
+            int size,
+            String sortBy,
+            String sortDir
+    ) {
+
+        Sort sort = createSort(
+                sortBy,
+                sortDir
+        );
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                sort
+        );
+
+        return vehicleRepository
+                .findByVehicleNumberContainingIgnoreCaseOrModelContainingIgnoreCaseOrManufacturerContainingIgnoreCase(
+                        query,
+                        query,
+                        query,
+                        pageable
+                )
+                .map(this::mapToResponse);
     }
 
     @Override
     public VehicleResponse getVehicleById(Long id) {
 
-        Vehicle vehicle = vehicleRepository.findById(id)
+        Vehicle vehicle = vehicleRepository
+                .findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Vehicle not found")
+                        new RuntimeException(
+                                "Vehicle not found"
+                        )
                 );
 
         return mapToResponse(vehicle);
@@ -64,16 +124,26 @@ public class VehicleServiceImpl implements VehicleService {
             CreateVehicleRequest request
     ) {
 
-        Vehicle vehicle = vehicleRepository.findById(id)
+        Vehicle vehicle = vehicleRepository
+                .findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Vehicle not found")
+                        new RuntimeException(
+                                "Vehicle not found"
+                        )
                 );
 
-        if (!vehicle.getVehicleNumber().equals(request.getVehicleNumber())
-                && vehicleRepository.existsByVehicleNumber(
-                request.getVehicleNumber()
-        )) {
-            throw new RuntimeException("Vehicle number already exists");
+        if (!vehicle.getVehicleNumber()
+                .equalsIgnoreCase(
+                        request.getVehicleNumber()
+                )
+                && vehicleRepository
+                .existsByVehicleNumber(
+                        request.getVehicleNumber()
+                )) {
+
+            throw new RuntimeException(
+                    "Vehicle number already exists"
+            );
         }
 
         vehicle.setVehicleNumber(request.getVehicleNumber());
@@ -83,7 +153,8 @@ public class VehicleServiceImpl implements VehicleService {
         vehicle.setManufacturer(request.getManufacturer());
         vehicle.setStatus(request.getStatus());
 
-        Vehicle updatedVehicle = vehicleRepository.save(vehicle);
+        Vehicle updatedVehicle =
+                vehicleRepository.save(vehicle);
 
         return mapToResponse(updatedVehicle);
     }
@@ -91,15 +162,32 @@ public class VehicleServiceImpl implements VehicleService {
     @Override
     public void deleteVehicle(Long id) {
 
-        Vehicle vehicle = vehicleRepository.findById(id)
+        Vehicle vehicle = vehicleRepository
+                .findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Vehicle not found")
+                        new RuntimeException(
+                                "Vehicle not found"
+                        )
                 );
 
         vehicleRepository.delete(vehicle);
     }
 
-    private VehicleResponse mapToResponse(Vehicle vehicle) {
+    private Sort createSort(
+            String sortBy,
+            String sortDir
+    ) {
+
+        if ("desc".equalsIgnoreCase(sortDir)) {
+            return Sort.by(sortBy).descending();
+        }
+
+        return Sort.by(sortBy).ascending();
+    }
+
+    private VehicleResponse mapToResponse(
+            Vehicle vehicle
+    ) {
 
         return new VehicleResponse(
                 vehicle.getId(),

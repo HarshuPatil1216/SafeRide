@@ -2,14 +2,26 @@ package com.saferide.service;
 
 import com.saferide.dto.CreateVehicleRequest;
 import com.saferide.dto.VehicleResponse;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
 
 public interface VehicleService {
 
     VehicleResponse createVehicle(CreateVehicleRequest request);
 
-    List<VehicleResponse> getAllVehicles();
+    Page<VehicleResponse> getAllVehicles(
+            int page,
+            int size,
+            String sortBy,
+            String sortDir
+    );
+
+    Page<VehicleResponse> searchVehicles(
+            String query,
+            int page,
+            int size,
+            String sortBy,
+            String sortDir
+    );
 
     VehicleResponse getVehicleById(Long id);
 
