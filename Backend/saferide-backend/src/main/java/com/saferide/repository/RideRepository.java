@@ -14,5 +14,9 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
 
     List<Ride> findByStatus(RideStatus status);
 
-    Page<Ride> findAll(Pageable pageable);
+    Page<Ride> findBySourceContainingIgnoreCaseOrDestinationContainingIgnoreCase(
+            String source,
+            String destination,
+            Pageable pageable
+    );
 }

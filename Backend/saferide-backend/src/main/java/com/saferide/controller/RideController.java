@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/rides")
 @Tag(
         name = "Ride Management",
-        description = "APIs for creating, viewing, starting, ending and deleting rides"
+        description = "APIs for creating, viewing, searching, starting, ending and deleting rides"
 )
 public class RideController {
 
@@ -68,14 +68,42 @@ public class RideController {
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String sortDir
     ) {
-        Page<RideResponse> rides = rideService.getAllRides(
-                page,
-                size,
-                sortBy,
-                sortDir
+        return ResponseEntity.ok(
+                rideService.getAllRides(
+                        page,
+                        size,
+                        sortBy,
+                        sortDir
+                )
         );
+    }
 
-        return ResponseEntity.ok(rides);
+    @Operation(
+            summary = "Search rides",
+            description = "Searches rides by source or destination with pagination and sorting"
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Matching rides returned successfully"
+    )
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @GetMapping("/search")
+    public ResponseEntity<Page<RideResponse>> searchRides(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir
+    ) {
+        return ResponseEntity.ok(
+                rideService.searchRides(
+                        query,
+                        page,
+                        size,
+                        sortBy,
+                        sortDir
+                )
+        );
     }
 
     @Operation(

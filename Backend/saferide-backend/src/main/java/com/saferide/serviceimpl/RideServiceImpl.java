@@ -38,20 +38,17 @@ public class RideServiceImpl implements RideService {
     @Override
     public RideResponse createRide(CreateRideRequest request) {
 
-        Driver driver = driverRepository
-                .findById(request.getDriverId())
+        Driver driver = driverRepository.findById(request.getDriverId())
                 .orElseThrow(() ->
                         new RuntimeException("Driver not found")
                 );
 
-        Vehicle vehicle = vehicleRepository
-                .findById(request.getVehicleId())
+        Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
                 .orElseThrow(() ->
                         new RuntimeException("Vehicle not found")
                 );
 
         Ride ride = new Ride();
-
         ride.setDriver(driver);
         ride.setVehicle(vehicle);
         ride.setSource(request.getSource());
@@ -71,13 +68,28 @@ public class RideServiceImpl implements RideService {
             String sortDir
     ) {
 
-        Sort sort;
+        Sort sort = createSort(sortBy, sortDir);
 
-        if ("desc".equalsIgnoreCase(sortDir)) {
-            sort = Sort.by(sortBy).descending();
-        } else {
-            sort = Sort.by(sortBy).ascending();
-        }
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                sort
+        );
+
+        return rideRepository.findAll(pageable)
+                .map(this::mapToResponse);
+    }
+
+    @Override
+    public Page<RideResponse> searchRides(
+            String query,
+            int page,
+            int size,
+            String sortBy,
+            String sortDir
+    ) {
+
+        Sort sort = createSort(sortBy, sortDir);
 
         Pageable pageable = PageRequest.of(
                 page,
@@ -86,15 +98,18 @@ public class RideServiceImpl implements RideService {
         );
 
         return rideRepository
-                .findAll(pageable)
+                .findBySourceContainingIgnoreCaseOrDestinationContainingIgnoreCase(
+                        query,
+                        query,
+                        pageable
+                )
                 .map(this::mapToResponse);
     }
 
     @Override
     public RideResponse getRideById(Long id) {
 
-        Ride ride = rideRepository
-                .findById(id)
+        Ride ride = rideRepository.findById(id)
                 .orElseThrow(() ->
                         new RuntimeException("Ride not found")
                 );
@@ -105,8 +120,7 @@ public class RideServiceImpl implements RideService {
     @Override
     public RideResponse startRide(Long id) {
 
-        Ride ride = rideRepository
-                .findById(id)
+        Ride ride = rideRepository.findById(id)
                 .orElseThrow(() ->
                         new RuntimeException("Ride not found")
                 );
@@ -128,8 +142,7 @@ public class RideServiceImpl implements RideService {
     @Override
     public RideResponse endRide(Long id) {
 
-        Ride ride = rideRepository
-                .findById(id)
+        Ride ride = rideRepository.findById(id)
                 .orElseThrow(() ->
                         new RuntimeException("Ride not found")
                 );
@@ -151,13 +164,24 @@ public class RideServiceImpl implements RideService {
     @Override
     public void deleteRide(Long id) {
 
-        Ride ride = rideRepository
-                .findById(id)
+        Ride ride = rideRepository.findById(id)
                 .orElseThrow(() ->
                         new RuntimeException("Ride not found")
                 );
 
         rideRepository.delete(ride);
+    }
+
+    private Sort createSort(
+            String sortBy,
+            String sortDir
+    ) {
+
+        if ("desc".equalsIgnoreCase(sortDir)) {
+            return Sort.by(sortBy).descending();
+        }
+
+        return Sort.by(sortBy).ascending();
     }
 
     private RideResponse mapToResponse(Ride ride) {

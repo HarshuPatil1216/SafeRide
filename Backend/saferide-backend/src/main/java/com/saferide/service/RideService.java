@@ -15,6 +15,14 @@ public interface RideService {
             String sortDir
     );
 
+    Page<RideResponse> searchRides(
+            String query,
+            int page,
+            int size,
+            String sortBy,
+            String sortDir
+    );
+
     RideResponse getRideById(Long id);
 
     RideResponse startRide(Long id);
