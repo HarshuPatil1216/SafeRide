@@ -20,7 +20,7 @@ public class GlobalExceptionHandler {
         ApiErrorResponse response = new ApiErrorResponse(
                 LocalDateTime.now(),
                 HttpStatus.CONFLICT.value(),
-                "Conflict",
+                HttpStatus.CONFLICT.getReasonPhrase(),
                 exception.getMessage()
         );
 
@@ -73,27 +73,45 @@ public class GlobalExceptionHandler {
                 .body(response);
     }
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiErrorResponse> handleUnexpectedException(
+            Exception exception
+    ) {
+        ApiErrorResponse response = new ApiErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+                "Something went wrong"
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(response);
+    }
+
     private HttpStatus determineStatus(String message) {
 
-        if (message == null) {
+        if (message == null || message.isBlank()) {
             return HttpStatus.INTERNAL_SERVER_ERROR;
         }
 
-        if (message.contains("not found")) {
+        String normalizedMessage = message.toLowerCase();
+
+        if (normalizedMessage.contains("not found")) {
             return HttpStatus.NOT_FOUND;
         }
 
-        if (message.contains("already exists")
-                || message.contains("already registered")) {
+        if (normalizedMessage.contains("already exists")
+                || normalizedMessage.contains("already registered")) {
             return HttpStatus.CONFLICT;
         }
 
-        if (message.contains("Only scheduled ride")
-                || message.contains("Only in-progress ride")) {
+        if (normalizedMessage.contains("only scheduled ride")
+                || normalizedMessage.contains("only in-progress ride")) {
             return HttpStatus.BAD_REQUEST;
         }
 
-        if (message.contains("Invalid email or password")) {
+        if (normalizedMessage.contains("invalid email or password")) {
             return HttpStatus.UNAUTHORIZED;
         }
 
