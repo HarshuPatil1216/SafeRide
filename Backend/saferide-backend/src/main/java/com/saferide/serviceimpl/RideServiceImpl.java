@@ -6,6 +6,8 @@ import com.saferide.entity.Driver;
 import com.saferide.entity.Ride;
 import com.saferide.entity.Vehicle;
 import com.saferide.enums.RideStatus;
+import com.saferide.exception.InvalidRideStateException;
+import com.saferide.exception.ResourceNotFoundException;
 import com.saferide.repository.DriverRepository;
 import com.saferide.repository.RideRepository;
 import com.saferide.repository.VehicleRepository;
@@ -38,14 +40,20 @@ public class RideServiceImpl implements RideService {
     @Override
     public RideResponse createRide(CreateRideRequest request) {
 
-        Driver driver = driverRepository.findById(request.getDriverId())
+        Driver driver = driverRepository
+                .findById(request.getDriverId())
                 .orElseThrow(() ->
-                        new RuntimeException("Driver not found")
+                        new ResourceNotFoundException(
+                                "Driver not found"
+                        )
                 );
 
-        Vehicle vehicle = vehicleRepository.findById(request.getVehicleId())
+        Vehicle vehicle = vehicleRepository
+                .findById(request.getVehicleId())
                 .orElseThrow(() ->
-                        new RuntimeException("Vehicle not found")
+                        new ResourceNotFoundException(
+                                "Vehicle not found"
+                        )
                 );
 
         Ride ride = new Ride();
@@ -76,7 +84,8 @@ public class RideServiceImpl implements RideService {
                 sort
         );
 
-        return rideRepository.findAll(pageable)
+        return rideRepository
+                .findAll(pageable)
                 .map(this::mapToResponse);
     }
 
@@ -109,10 +118,7 @@ public class RideServiceImpl implements RideService {
     @Override
     public RideResponse getRideById(Long id) {
 
-        Ride ride = rideRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("Ride not found")
-                );
+        Ride ride = findRideById(id);
 
         return mapToResponse(ride);
     }
@@ -120,13 +126,10 @@ public class RideServiceImpl implements RideService {
     @Override
     public RideResponse startRide(Long id) {
 
-        Ride ride = rideRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("Ride not found")
-                );
+        Ride ride = findRideById(id);
 
         if (ride.getStatus() != RideStatus.SCHEDULED) {
-            throw new RuntimeException(
+            throw new InvalidRideStateException(
                     "Only scheduled ride can be started"
             );
         }
@@ -142,13 +145,10 @@ public class RideServiceImpl implements RideService {
     @Override
     public RideResponse endRide(Long id) {
 
-        Ride ride = rideRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("Ride not found")
-                );
+        Ride ride = findRideById(id);
 
         if (ride.getStatus() != RideStatus.IN_PROGRESS) {
-            throw new RuntimeException(
+            throw new InvalidRideStateException(
                     "Only in-progress ride can be completed"
             );
         }
@@ -164,12 +164,19 @@ public class RideServiceImpl implements RideService {
     @Override
     public void deleteRide(Long id) {
 
-        Ride ride = rideRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("Ride not found")
-                );
+        Ride ride = findRideById(id);
 
         rideRepository.delete(ride);
+    }
+
+    private Ride findRideById(Long id) {
+
+        return rideRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Ride not found"
+                        )
+                );
     }
 
     private Sort createSort(

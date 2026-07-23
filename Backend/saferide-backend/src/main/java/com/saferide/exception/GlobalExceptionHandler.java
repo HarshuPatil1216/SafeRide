@@ -13,6 +13,54 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleResourceNotFound(
+            ResourceNotFoundException exception
+    ) {
+        ApiErrorResponse response = new ApiErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(response);
+    }
+
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ApiErrorResponse> handleDuplicateResource(
+            DuplicateResourceException exception
+    ) {
+        ApiErrorResponse response = new ApiErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(response);
+    }
+
+    @ExceptionHandler(InvalidRideStateException.class)
+    public ResponseEntity<ApiErrorResponse> handleInvalidRideState(
+            InvalidRideStateException exception
+    ) {
+        ApiErrorResponse response = new ApiErrorResponse(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(response);
+    }
+
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<ApiErrorResponse> handleEmailAlreadyExists(
             EmailAlreadyExistsException exception
@@ -59,17 +107,15 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrorResponse> handleRuntimeException(
             RuntimeException exception
     ) {
-        HttpStatus status = determineStatus(exception.getMessage());
-
         ApiErrorResponse response = new ApiErrorResponse(
                 LocalDateTime.now(),
-                status.value(),
-                status.getReasonPhrase(),
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
                 exception.getMessage()
         );
 
         return ResponseEntity
-                .status(status)
+                .status(HttpStatus.BAD_REQUEST)
                 .body(response);
     }
 
@@ -87,34 +133,5 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(response);
-    }
-
-    private HttpStatus determineStatus(String message) {
-
-        if (message == null || message.isBlank()) {
-            return HttpStatus.INTERNAL_SERVER_ERROR;
-        }
-
-        String normalizedMessage = message.toLowerCase();
-
-        if (normalizedMessage.contains("not found")) {
-            return HttpStatus.NOT_FOUND;
-        }
-
-        if (normalizedMessage.contains("already exists")
-                || normalizedMessage.contains("already registered")) {
-            return HttpStatus.CONFLICT;
-        }
-
-        if (normalizedMessage.contains("only scheduled ride")
-                || normalizedMessage.contains("only in-progress ride")) {
-            return HttpStatus.BAD_REQUEST;
-        }
-
-        if (normalizedMessage.contains("invalid email or password")) {
-            return HttpStatus.UNAUTHORIZED;
-        }
-
-        return HttpStatus.BAD_REQUEST;
     }
 }

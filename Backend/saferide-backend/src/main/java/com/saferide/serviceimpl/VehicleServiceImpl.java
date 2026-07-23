@@ -3,6 +3,8 @@ package com.saferide.serviceimpl;
 import com.saferide.dto.CreateVehicleRequest;
 import com.saferide.dto.VehicleResponse;
 import com.saferide.entity.Vehicle;
+import com.saferide.exception.DuplicateResourceException;
+import com.saferide.exception.ResourceNotFoundException;
 import com.saferide.repository.VehicleRepository;
 import com.saferide.service.VehicleService;
 import org.springframework.data.domain.Page;
@@ -30,7 +32,7 @@ public class VehicleServiceImpl implements VehicleService {
         if (vehicleRepository.existsByVehicleNumber(
                 request.getVehicleNumber()
         )) {
-            throw new RuntimeException(
+            throw new DuplicateResourceException(
                     "Vehicle number already exists"
             );
         }
@@ -44,8 +46,7 @@ public class VehicleServiceImpl implements VehicleService {
         vehicle.setManufacturer(request.getManufacturer());
         vehicle.setStatus(request.getStatus());
 
-        Vehicle savedVehicle =
-                vehicleRepository.save(vehicle);
+        Vehicle savedVehicle = vehicleRepository.save(vehicle);
 
         return mapToResponse(savedVehicle);
     }
@@ -110,7 +111,7 @@ public class VehicleServiceImpl implements VehicleService {
         Vehicle vehicle = vehicleRepository
                 .findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException(
+                        new ResourceNotFoundException(
                                 "Vehicle not found"
                         )
                 );
@@ -127,7 +128,7 @@ public class VehicleServiceImpl implements VehicleService {
         Vehicle vehicle = vehicleRepository
                 .findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException(
+                        new ResourceNotFoundException(
                                 "Vehicle not found"
                         )
                 );
@@ -141,7 +142,7 @@ public class VehicleServiceImpl implements VehicleService {
                         request.getVehicleNumber()
                 )) {
 
-            throw new RuntimeException(
+            throw new DuplicateResourceException(
                     "Vehicle number already exists"
             );
         }
@@ -153,8 +154,7 @@ public class VehicleServiceImpl implements VehicleService {
         vehicle.setManufacturer(request.getManufacturer());
         vehicle.setStatus(request.getStatus());
 
-        Vehicle updatedVehicle =
-                vehicleRepository.save(vehicle);
+        Vehicle updatedVehicle = vehicleRepository.save(vehicle);
 
         return mapToResponse(updatedVehicle);
     }
@@ -165,7 +165,7 @@ public class VehicleServiceImpl implements VehicleService {
         Vehicle vehicle = vehicleRepository
                 .findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException(
+                        new ResourceNotFoundException(
                                 "Vehicle not found"
                         )
                 );

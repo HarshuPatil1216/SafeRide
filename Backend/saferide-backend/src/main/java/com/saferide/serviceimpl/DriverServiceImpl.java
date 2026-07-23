@@ -3,6 +3,8 @@ package com.saferide.serviceimpl;
 import com.saferide.dto.CreateDriverRequest;
 import com.saferide.dto.DriverResponse;
 import com.saferide.entity.Driver;
+import com.saferide.exception.DuplicateResourceException;
+import com.saferide.exception.ResourceNotFoundException;
 import com.saferide.repository.DriverRepository;
 import com.saferide.service.DriverService;
 import org.springframework.data.domain.Page;
@@ -24,15 +26,23 @@ public class DriverServiceImpl implements DriverService {
     public DriverResponse createDriver(CreateDriverRequest request) {
 
         if (driverRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Driver email already exists");
+            throw new DuplicateResourceException(
+                    "Driver email already exists"
+            );
         }
 
         if (driverRepository.existsByPhone(request.getPhone())) {
-            throw new RuntimeException("Phone number already exists");
+            throw new DuplicateResourceException(
+                    "Phone number already exists"
+            );
         }
 
-        if (driverRepository.existsByLicenseNumber(request.getLicenseNumber())) {
-            throw new RuntimeException("License number already exists");
+        if (driverRepository.existsByLicenseNumber(
+                request.getLicenseNumber()
+        )) {
+            throw new DuplicateResourceException(
+                    "License number already exists"
+            );
         }
 
         Driver driver = new Driver();
@@ -55,7 +65,6 @@ public class DriverServiceImpl implements DriverService {
             String sortBy,
             String sortDir
     ) {
-
         Sort sort = createSort(sortBy, sortDir);
 
         Pageable pageable = PageRequest.of(
@@ -76,7 +85,6 @@ public class DriverServiceImpl implements DriverService {
             String sortBy,
             String sortDir
     ) {
-
         Sort sort = createSort(sortBy, sortDir);
 
         Pageable pageable = PageRequest.of(
@@ -99,7 +107,9 @@ public class DriverServiceImpl implements DriverService {
 
         Driver driver = driverRepository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Driver not found")
+                        new ResourceNotFoundException(
+                                "Driver not found"
+                        )
                 );
 
         return mapToResponse(driver);
@@ -110,20 +120,25 @@ public class DriverServiceImpl implements DriverService {
             Long id,
             CreateDriverRequest request
     ) {
-
         Driver driver = driverRepository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Driver not found")
+                        new ResourceNotFoundException(
+                                "Driver not found"
+                        )
                 );
 
         if (!driver.getEmail().equalsIgnoreCase(request.getEmail())
                 && driverRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Driver email already exists");
+            throw new DuplicateResourceException(
+                    "Driver email already exists"
+            );
         }
 
         if (!driver.getPhone().equals(request.getPhone())
                 && driverRepository.existsByPhone(request.getPhone())) {
-            throw new RuntimeException("Phone number already exists");
+            throw new DuplicateResourceException(
+                    "Phone number already exists"
+            );
         }
 
         if (!driver.getLicenseNumber().equalsIgnoreCase(
@@ -132,7 +147,9 @@ public class DriverServiceImpl implements DriverService {
                 && driverRepository.existsByLicenseNumber(
                 request.getLicenseNumber()
         )) {
-            throw new RuntimeException("License number already exists");
+            throw new DuplicateResourceException(
+                    "License number already exists"
+            );
         }
 
         driver.setFullName(request.getFullName());
@@ -152,7 +169,9 @@ public class DriverServiceImpl implements DriverService {
 
         Driver driver = driverRepository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Driver not found")
+                        new ResourceNotFoundException(
+                                "Driver not found"
+                        )
                 );
 
         driverRepository.delete(driver);
@@ -162,7 +181,6 @@ public class DriverServiceImpl implements DriverService {
             String sortBy,
             String sortDir
     ) {
-
         if ("desc".equalsIgnoreCase(sortDir)) {
             return Sort.by(sortBy).descending();
         }
@@ -171,7 +189,6 @@ public class DriverServiceImpl implements DriverService {
     }
 
     private DriverResponse mapToResponse(Driver driver) {
-
         return new DriverResponse(
                 driver.getId(),
                 driver.getFullName(),
