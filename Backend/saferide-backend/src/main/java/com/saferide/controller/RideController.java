@@ -7,14 +7,18 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/rides")
+@Validated
 @Tag(
         name = "Ride Management",
         description = "APIs for creating, viewing, searching, starting, ending and deleting rides"
@@ -63,10 +67,20 @@ public class RideController {
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping
     public ResponseEntity<Page<RideResponse>> getAllRides(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir
+            @RequestParam(defaultValue = "0")
+            @Min(value = 0, message = "Page number cannot be negative")
+            int page,
+
+            @RequestParam(defaultValue = "10")
+            @Min(value = 1, message = "Page size must be at least 1")
+            @Max(value = 100, message = "Page size cannot exceed 100")
+            int size,
+
+            @RequestParam(defaultValue = "id")
+            String sortBy,
+
+            @RequestParam(defaultValue = "asc")
+            String sortDir
     ) {
         return ResponseEntity.ok(
                 rideService.getAllRides(
@@ -90,10 +104,21 @@ public class RideController {
     @GetMapping("/search")
     public ResponseEntity<Page<RideResponse>> searchRides(
             @RequestParam String query,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir
+
+            @RequestParam(defaultValue = "0")
+            @Min(value = 0, message = "Page number cannot be negative")
+            int page,
+
+            @RequestParam(defaultValue = "10")
+            @Min(value = 1, message = "Page size must be at least 1")
+            @Max(value = 100, message = "Page size cannot exceed 100")
+            int size,
+
+            @RequestParam(defaultValue = "id")
+            String sortBy,
+
+            @RequestParam(defaultValue = "asc")
+            String sortDir
     ) {
         return ResponseEntity.ok(
                 rideService.searchRides(
