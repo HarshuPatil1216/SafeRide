@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: saferide-mysql
+    restart: always
+
+    environment:
+      MYSQL_ROOT_PASSWORD: 1216
+      MYSQL_DATABASE: saferide_db
+
+    ports:
+      - "3306:3306"
+
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  saferide-app:
+    build: .
+    container_name: saferide-backend
+
+    depends_on:
+      - mysql
+
+    ports:
+      - "8080:8080"
+
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/saferide_db
+      DB_USERNAME: root
+      DB_PASSWORD: 1216
+
+volumes:
+  mysql-data:
