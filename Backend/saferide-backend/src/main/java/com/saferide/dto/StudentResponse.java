@@ -17,6 +17,9 @@ public class StudentResponse {
     private Long routeId;
     private String routeName;
 
+    private Long stopId;
+    private String stopName;
+
     private String address;
     private Boolean active;
     private LocalDateTime createdAt;
@@ -35,6 +38,8 @@ public class StudentResponse {
             String parentPhone,
             Long routeId,
             String routeName,
+            Long stopId,
+            String stopName,
             String address,
             Boolean active,
             LocalDateTime createdAt
@@ -49,6 +54,8 @@ public class StudentResponse {
         this.parentPhone = parentPhone;
         this.routeId = routeId;
         this.routeName = routeName;
+        this.stopId = stopId;
+        this.stopName = stopName;
         this.address = address;
         this.active = active;
         this.createdAt = createdAt;
@@ -92,6 +99,14 @@ public class StudentResponse {
 
     public String getRouteName() {
         return routeName;
+    }
+
+    public Long getStopId() {
+        return stopId;
+    }
+
+    public String getStopName() {
+        return stopName;
     }
 
     public String getAddress() {

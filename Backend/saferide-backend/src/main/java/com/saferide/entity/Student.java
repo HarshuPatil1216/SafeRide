@@ -24,6 +24,10 @@ public class Student {
     @Column(nullable = false)
     private String division;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "stop_id")
+    private Stop stop;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
             name = "parent_id",
@@ -77,6 +81,14 @@ public class Student {
 
     public String getRollNumber() {
         return rollNumber;
+    }
+
+    public Stop getStop() {
+        return stop;
+    }
+
+    public void setStop(Stop stop) {
+        this.stop = stop;
     }
 
     public void setRollNumber(String rollNumber) {

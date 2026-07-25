@@ -4,11 +4,13 @@ import com.saferide.dto.CreateStudentRequest;
 import com.saferide.dto.StudentResponse;
 import com.saferide.entity.Parent;
 import com.saferide.entity.Route;
+import com.saferide.entity.Stop;
 import com.saferide.entity.Student;
 import com.saferide.exception.DuplicateResourceException;
 import com.saferide.exception.ResourceNotFoundException;
 import com.saferide.repository.ParentRepository;
 import com.saferide.repository.RouteRepository;
+import com.saferide.repository.StopRepository;
 import com.saferide.repository.StudentRepository;
 import com.saferide.service.StudentService;
 import org.springframework.data.domain.Page;
@@ -24,15 +26,18 @@ public class StudentServiceImpl implements StudentService {
     private final StudentRepository studentRepository;
     private final ParentRepository parentRepository;
     private final RouteRepository routeRepository;
+    private final StopRepository stopRepository;
 
     public StudentServiceImpl(
             StudentRepository studentRepository,
             ParentRepository parentRepository,
-            RouteRepository routeRepository
+            RouteRepository routeRepository,
+            StopRepository stopRepository
     ) {
         this.studentRepository = studentRepository;
         this.parentRepository = parentRepository;
         this.routeRepository = routeRepository;
+        this.stopRepository = stopRepository;
     }
 
     @Override
@@ -57,6 +62,11 @@ public class StudentServiceImpl implements StudentService {
                 request.getRouteId()
         );
 
+        Stop stop = findAndValidateOptionalStop(
+                request.getStopId(),
+                route
+        );
+
         Student student = new Student();
 
         student.setFullName(request.getFullName());
@@ -65,6 +75,7 @@ public class StudentServiceImpl implements StudentService {
         student.setDivision(request.getDivision());
         student.setParent(parent);
         student.setRoute(route);
+        student.setStop(stop);
         student.setAddress(request.getAddress());
 
         student.setActive(
@@ -160,12 +171,18 @@ public class StudentServiceImpl implements StudentService {
                 request.getRouteId()
         );
 
+        Stop stop = findAndValidateOptionalStop(
+                request.getStopId(),
+                route
+        );
+
         student.setFullName(request.getFullName());
         student.setRollNumber(request.getRollNumber());
         student.setStandard(request.getStandard());
         student.setDivision(request.getDivision());
         student.setParent(parent);
         student.setRoute(route);
+        student.setStop(stop);
         student.setAddress(request.getAddress());
 
         if (request.getActive() != null) {
@@ -224,6 +241,38 @@ public class StudentServiceImpl implements StudentService {
                 );
     }
 
+    private Stop findAndValidateOptionalStop(
+            Long stopId,
+            Route route
+    ) {
+
+        if (stopId == null) {
+            return null;
+        }
+
+        if (route == null) {
+            throw new IllegalArgumentException(
+                    "Route must be selected before assigning a stop"
+            );
+        }
+
+        Stop stop = stopRepository
+                .findById(stopId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Stop not found"
+                        )
+                );
+
+        if (!stop.getRoute().getId().equals(route.getId())) {
+            throw new IllegalArgumentException(
+                    "Selected stop does not belong to selected route"
+            );
+        }
+
+        return stop;
+    }
+
     private Sort createSort(
             String sortBy,
             String sortDir
@@ -242,6 +291,7 @@ public class StudentServiceImpl implements StudentService {
 
         Parent parent = student.getParent();
         Route route = student.getRoute();
+        Stop stop = student.getStop();
 
         return new StudentResponse(
                 student.getId(),
@@ -256,6 +306,9 @@ public class StudentServiceImpl implements StudentService {
 
                 route != null ? route.getId() : null,
                 route != null ? route.getRouteName() : null,
+
+                stop != null ? stop.getId() : null,
+                stop != null ? stop.getStopName() : null,
 
                 student.getAddress(),
                 student.getActive(),

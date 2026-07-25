@@ -22,6 +22,8 @@ public class CreateStudentRequest {
 
     private Long routeId;
 
+    private Long stopId;
+
     @NotBlank(message = "Address is required")
     private String address;
 
@@ -76,6 +78,14 @@ public class CreateStudentRequest {
 
     public void setRouteId(Long routeId) {
         this.routeId = routeId;
+    }
+
+    public Long getStopId() {
+        return stopId;
+    }
+
+    public void setStopId(Long stopId) {
+        this.stopId = stopId;
     }
 
     public String getAddress() {
