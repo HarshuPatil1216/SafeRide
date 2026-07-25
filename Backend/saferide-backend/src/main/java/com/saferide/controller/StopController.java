@@ -1,8 +1,8 @@
 package com.saferide.controller;
 
-import com.saferide.dto.CreateParentRequest;
-import com.saferide.dto.ParentResponse;
-import com.saferide.service.ParentService;
+import com.saferide.dto.CreateStopRequest;
+import com.saferide.dto.StopResponse;
+import com.saferide.service.StopService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,60 +16,66 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/api/parents")
+@RequestMapping("/api/stops")
 @Validated
 @Tag(
-        name = "Parent Management",
-        description = "APIs for creating, viewing, searching, updating and deleting parents"
+        name = "Stop Management",
+        description = "APIs for creating, viewing, searching, updating and deleting route stops"
 )
-public class ParentController {
+public class StopController {
 
-    private final ParentService parentService;
+    private final StopService stopService;
 
-    public ParentController(
-            ParentService parentService
+    public StopController(
+            StopService stopService
     ) {
-        this.parentService = parentService;
+        this.stopService = stopService;
     }
 
     @Operation(
-            summary = "Create a parent",
-            description = "Creates a new parent with unique email and phone"
+            summary = "Create a stop",
+            description = "Creates a stop under an existing route"
     )
     @ApiResponse(
             responseCode = "201",
-            description = "Parent created successfully"
+            description = "Stop created successfully"
     )
     @ApiResponse(
             responseCode = "400",
             description = "Invalid request data"
     )
     @ApiResponse(
+            responseCode = "404",
+            description = "Route not found"
+    )
+    @ApiResponse(
             responseCode = "409",
-            description = "Parent email or phone already exists"
+            description = "Stop name or stop order already exists for this route"
     )
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PostMapping
-    public ResponseEntity<ParentResponse> createParent(
-            @Valid @RequestBody CreateParentRequest request
+    public ResponseEntity<StopResponse> createStop(
+            @Valid @RequestBody CreateStopRequest request
     ) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(parentService.createParent(request));
+                .body(stopService.createStop(request));
     }
 
     @Operation(
-            summary = "Get all parents",
-            description = "Returns parents with pagination and sorting"
+            summary = "Get all stops",
+            description = "Returns stops with pagination and sorting"
     )
     @ApiResponse(
             responseCode = "200",
-            description = "Parents returned successfully"
+            description = "Stops returned successfully"
     )
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping
-    public ResponseEntity<Page<ParentResponse>> getAllParents(
+    public ResponseEntity<Page<StopResponse>> getAllStops(
             @RequestParam(defaultValue = "0")
             @Min(value = 0, message = "Page number cannot be negative")
             int page,
@@ -86,7 +92,7 @@ public class ParentController {
             String sortDir
     ) {
         return ResponseEntity.ok(
-                parentService.getAllParents(
+                stopService.getAllStops(
                         page,
                         size,
                         sortBy,
@@ -96,16 +102,16 @@ public class ParentController {
     }
 
     @Operation(
-            summary = "Search parents",
-            description = "Searches parents by full name, email or phone"
+            summary = "Search stops",
+            description = "Searches stops by stop name or address"
     )
     @ApiResponse(
             responseCode = "200",
-            description = "Matching parents returned successfully"
+            description = "Matching stops returned successfully"
     )
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("/search")
-    public ResponseEntity<Page<ParentResponse>> searchParents(
+    public ResponseEntity<Page<StopResponse>> searchStops(
             @RequestParam String query,
 
             @RequestParam(defaultValue = "0")
@@ -124,7 +130,7 @@ public class ParentController {
             String sortDir
     ) {
         return ResponseEntity.ok(
-                parentService.searchParents(
+                stopService.searchStops(
                         query,
                         page,
                         size,
@@ -135,72 +141,94 @@ public class ParentController {
     }
 
     @Operation(
-            summary = "Get parent by ID",
-            description = "Returns the parent matching the provided ID"
+            summary = "Get stops by route",
+            description = "Returns all stops of a route ordered by stop order"
     )
     @ApiResponse(
             responseCode = "200",
-            description = "Parent found successfully"
+            description = "Route stops returned successfully"
     )
     @ApiResponse(
             responseCode = "404",
-            description = "Parent not found"
+            description = "Route not found"
+    )
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @GetMapping("/route/{routeId}")
+    public ResponseEntity<List<StopResponse>> getStopsByRouteId(
+            @PathVariable Long routeId
+    ) {
+        return ResponseEntity.ok(
+                stopService.getStopsByRouteId(routeId)
+        );
+    }
+
+    @Operation(
+            summary = "Get stop by ID",
+            description = "Returns the stop matching the provided ID"
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Stop found successfully"
+    )
+    @ApiResponse(
+            responseCode = "404",
+            description = "Stop not found"
     )
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("/{id}")
-    public ResponseEntity<ParentResponse> getParentById(
+    public ResponseEntity<StopResponse> getStopById(
             @PathVariable Long id
     ) {
         return ResponseEntity.ok(
-                parentService.getParentById(id)
+                stopService.getStopById(id)
         );
     }
 
     @Operation(
-            summary = "Update a parent",
-            description = "Updates parent details using the provided ID"
+            summary = "Update a stop",
+            description = "Updates stop details using the provided ID"
     )
     @ApiResponse(
             responseCode = "200",
-            description = "Parent updated successfully"
+            description = "Stop updated successfully"
     )
     @ApiResponse(
             responseCode = "404",
-            description = "Parent not found"
+            description = "Stop or route not found"
     )
     @ApiResponse(
             responseCode = "409",
-            description = "Parent email or phone already exists"
+            description = "Stop name or stop order already exists for this route"
     )
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<ParentResponse> updateParent(
+    public ResponseEntity<StopResponse> updateStop(
             @PathVariable Long id,
-            @Valid @RequestBody CreateParentRequest request
+            @Valid @RequestBody CreateStopRequest request
     ) {
         return ResponseEntity.ok(
-                parentService.updateParent(id, request)
+                stopService.updateStop(id, request)
         );
     }
 
     @Operation(
-            summary = "Delete a parent",
-            description = "Deletes the parent matching the provided ID"
+            summary = "Delete a stop",
+            description = "Deletes the stop matching the provided ID"
     )
     @ApiResponse(
             responseCode = "204",
-            description = "Parent deleted successfully"
+            description = "Stop deleted successfully"
     )
     @ApiResponse(
             responseCode = "404",
-            description = "Parent not found"
+            description = "Stop not found"
     )
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteParent(
+    public ResponseEntity<Void> deleteStop(
             @PathVariable Long id
     ) {
-        parentService.deleteParent(id);
+        stopService.deleteStop(id);
 
         return ResponseEntity
                 .noContent()
