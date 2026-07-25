@@ -3,10 +3,12 @@ package com.saferide.serviceimpl;
 import com.saferide.dto.CreateStudentRequest;
 import com.saferide.dto.StudentResponse;
 import com.saferide.entity.Parent;
+import com.saferide.entity.Route;
 import com.saferide.entity.Student;
 import com.saferide.exception.DuplicateResourceException;
 import com.saferide.exception.ResourceNotFoundException;
 import com.saferide.repository.ParentRepository;
+import com.saferide.repository.RouteRepository;
 import com.saferide.repository.StudentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,11 +32,15 @@ class StudentServiceImplTest {
     @Mock
     private ParentRepository parentRepository;
 
+    @Mock
+    private RouteRepository routeRepository;
+
     @InjectMocks
     private StudentServiceImpl studentService;
 
     private CreateStudentRequest request;
     private Parent parent;
+    private Route route;
     private Student student;
 
     @BeforeEach
@@ -46,6 +52,7 @@ class StudentServiceImplTest {
         request.setStandard("6");
         request.setDivision("B");
         request.setParentId(1L);
+        request.setRouteId(2L);
         request.setAddress("Pune City");
         request.setActive(true);
 
@@ -57,6 +64,15 @@ class StudentServiceImplTest {
         parent.setAddress("Pune City");
         parent.setActive(true);
 
+        route = new Route();
+        route.setId(2L);
+        route.setRouteName("Pune School Route");
+        route.setSource("Pune Station");
+        route.setDestination("SafeRide School");
+        route.setDistanceInKm(12.5);
+        route.setEstimatedDurationInMinutes(35);
+        route.setActive(true);
+
         student = new Student();
         student.setId(1L);
         student.setFullName(request.getFullName());
@@ -64,6 +80,7 @@ class StudentServiceImplTest {
         student.setStandard(request.getStandard());
         student.setDivision(request.getDivision());
         student.setParent(parent);
+        student.setRoute(route);
         student.setAddress(request.getAddress());
         student.setActive(request.getActive());
     }
@@ -77,6 +94,9 @@ class StudentServiceImplTest {
 
         when(parentRepository.findById(1L))
                 .thenReturn(Optional.of(parent));
+
+        when(routeRepository.findById(2L))
+                .thenReturn(Optional.of(route));
 
         when(studentRepository.save(any(Student.class)))
                 .thenReturn(student);
@@ -98,11 +118,46 @@ class StudentServiceImplTest {
         assertEquals("Suresh Patil", response.getParentName());
         assertEquals("9876543211", response.getParentPhone());
 
+        assertEquals(2L, response.getRouteId());
+        assertEquals(
+                "Pune School Route",
+                response.getRouteName()
+        );
+
         assertTrue(response.getActive());
 
         verify(parentRepository).findById(1L);
+        verify(routeRepository).findById(2L);
+
         verify(studentRepository)
                 .save(any(Student.class));
+    }
+
+    @Test
+    void createStudent_shouldWorkWithoutRoute() {
+
+        request.setRouteId(null);
+        student.setRoute(null);
+
+        when(studentRepository.existsByRollNumber(
+                request.getRollNumber()
+        )).thenReturn(false);
+
+        when(parentRepository.findById(1L))
+                .thenReturn(Optional.of(parent));
+
+        when(studentRepository.save(any(Student.class)))
+                .thenReturn(student);
+
+        StudentResponse response =
+                studentService.createStudent(request);
+
+        assertNotNull(response);
+        assertNull(response.getRouteId());
+        assertNull(response.getRouteName());
+
+        verify(routeRepository, never())
+                .findById(anyLong());
     }
 
     @Test
@@ -124,6 +179,9 @@ class StudentServiceImplTest {
         );
 
         verify(parentRepository, never())
+                .findById(anyLong());
+
+        verify(routeRepository, never())
                 .findById(anyLong());
 
         verify(studentRepository, never())
@@ -151,6 +209,37 @@ class StudentServiceImplTest {
                 exception.getMessage()
         );
 
+        verify(routeRepository, never())
+                .findById(anyLong());
+
+        verify(studentRepository, never())
+                .save(any(Student.class));
+    }
+
+    @Test
+    void createStudent_shouldThrowWhenRouteNotFound() {
+
+        when(studentRepository.existsByRollNumber(
+                request.getRollNumber()
+        )).thenReturn(false);
+
+        when(parentRepository.findById(1L))
+                .thenReturn(Optional.of(parent));
+
+        when(routeRepository.findById(2L))
+                .thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception =
+                assertThrows(
+                        ResourceNotFoundException.class,
+                        () -> studentService.createStudent(request)
+                );
+
+        assertEquals(
+                "Route not found",
+                exception.getMessage()
+        );
+
         verify(studentRepository, never())
                 .save(any(Student.class));
     }
@@ -171,8 +260,15 @@ class StudentServiceImplTest {
                 "Aarav Suresh Patil",
                 response.getFullName()
         );
+
         assertEquals(1L, response.getParentId());
         assertEquals("Suresh Patil", response.getParentName());
+
+        assertEquals(2L, response.getRouteId());
+        assertEquals(
+                "Pune School Route",
+                response.getRouteName()
+        );
     }
 
     @Test

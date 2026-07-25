@@ -20,6 +20,8 @@ public class CreateStudentRequest {
     @NotNull(message = "Parent ID is required")
     private Long parentId;
 
+    private Long routeId;
+
     @NotBlank(message = "Address is required")
     private String address;
 
@@ -66,6 +68,14 @@ public class CreateStudentRequest {
 
     public void setParentId(Long parentId) {
         this.parentId = parentId;
+    }
+
+    public Long getRouteId() {
+        return routeId;
+    }
+
+    public void setRouteId(Long routeId) {
+        this.routeId = routeId;
     }
 
     public String getAddress() {

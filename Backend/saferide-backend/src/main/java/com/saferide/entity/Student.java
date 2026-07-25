@@ -31,6 +31,10 @@ public class Student {
     )
     private Parent parent;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "route_id")
+    private Route route;
+
     @Column(nullable = false)
     private String address;
 
@@ -101,6 +105,14 @@ public class Student {
 
     public void setParent(Parent parent) {
         this.parent = parent;
+    }
+
+    public Route getRoute() {
+        return route;
+    }
+
+    public void setRoute(Route route) {
+        this.route = route;
     }
 
     public String getAddress() {

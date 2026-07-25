@@ -3,10 +3,12 @@ package com.saferide.serviceimpl;
 import com.saferide.dto.CreateStudentRequest;
 import com.saferide.dto.StudentResponse;
 import com.saferide.entity.Parent;
+import com.saferide.entity.Route;
 import com.saferide.entity.Student;
 import com.saferide.exception.DuplicateResourceException;
 import com.saferide.exception.ResourceNotFoundException;
 import com.saferide.repository.ParentRepository;
+import com.saferide.repository.RouteRepository;
 import com.saferide.repository.StudentRepository;
 import com.saferide.service.StudentService;
 import org.springframework.data.domain.Page;
@@ -21,13 +23,16 @@ public class StudentServiceImpl implements StudentService {
 
     private final StudentRepository studentRepository;
     private final ParentRepository parentRepository;
+    private final RouteRepository routeRepository;
 
     public StudentServiceImpl(
             StudentRepository studentRepository,
-            ParentRepository parentRepository
+            ParentRepository parentRepository,
+            RouteRepository routeRepository
     ) {
         this.studentRepository = studentRepository;
         this.parentRepository = parentRepository;
+        this.routeRepository = routeRepository;
     }
 
     @Override
@@ -48,6 +53,10 @@ public class StudentServiceImpl implements StudentService {
                 request.getParentId()
         );
 
+        Route route = findOptionalRouteById(
+                request.getRouteId()
+        );
+
         Student student = new Student();
 
         student.setFullName(request.getFullName());
@@ -55,6 +64,7 @@ public class StudentServiceImpl implements StudentService {
         student.setStandard(request.getStandard());
         student.setDivision(request.getDivision());
         student.setParent(parent);
+        student.setRoute(route);
         student.setAddress(request.getAddress());
 
         student.setActive(
@@ -146,11 +156,16 @@ public class StudentServiceImpl implements StudentService {
                 request.getParentId()
         );
 
+        Route route = findOptionalRouteById(
+                request.getRouteId()
+        );
+
         student.setFullName(request.getFullName());
         student.setRollNumber(request.getRollNumber());
         student.setStandard(request.getStandard());
         student.setDivision(request.getDivision());
         student.setParent(parent);
+        student.setRoute(route);
         student.setAddress(request.getAddress());
 
         if (request.getActive() != null) {
@@ -194,6 +209,21 @@ public class StudentServiceImpl implements StudentService {
                 );
     }
 
+    private Route findOptionalRouteById(Long routeId) {
+
+        if (routeId == null) {
+            return null;
+        }
+
+        return routeRepository
+                .findById(routeId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Route not found"
+                        )
+                );
+    }
+
     private Sort createSort(
             String sortBy,
             String sortDir
@@ -211,6 +241,7 @@ public class StudentServiceImpl implements StudentService {
     ) {
 
         Parent parent = student.getParent();
+        Route route = student.getRoute();
 
         return new StudentResponse(
                 student.getId(),
@@ -222,6 +253,9 @@ public class StudentServiceImpl implements StudentService {
                 parent.getId(),
                 parent.getFullName(),
                 parent.getPhone(),
+
+                route != null ? route.getId() : null,
+                route != null ? route.getRouteName() : null,
 
                 student.getAddress(),
                 student.getActive(),
