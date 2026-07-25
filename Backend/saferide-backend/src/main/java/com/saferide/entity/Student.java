@@ -24,11 +24,12 @@ public class Student {
     @Column(nullable = false)
     private String division;
 
-    @Column(nullable = false)
-    private String parentName;
-
-    @Column(nullable = false)
-    private String parentPhone;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(
+            name = "parent_id",
+            nullable = false
+    )
+    private Parent parent;
 
     @Column(nullable = false)
     private String address;
@@ -36,12 +37,19 @@ public class Student {
     @Column(nullable = false)
     private Boolean active = true;
 
-    @Column(nullable = false, updatable = false)
+    @Column(
+            nullable = false,
+            updatable = false
+    )
     private LocalDateTime createdAt;
 
     @PrePersist
     public void prePersist() {
         createdAt = LocalDateTime.now();
+
+        if (active == null) {
+            active = true;
+        }
     }
 
     public Student() {
@@ -87,20 +95,12 @@ public class Student {
         this.division = division;
     }
 
-    public String getParentName() {
-        return parentName;
+    public Parent getParent() {
+        return parent;
     }
 
-    public void setParentName(String parentName) {
-        this.parentName = parentName;
-    }
-
-    public String getParentPhone() {
-        return parentPhone;
-    }
-
-    public void setParentPhone(String parentPhone) {
-        this.parentPhone = parentPhone;
+    public void setParent(Parent parent) {
+        this.parent = parent;
     }
 
     public String getAddress() {

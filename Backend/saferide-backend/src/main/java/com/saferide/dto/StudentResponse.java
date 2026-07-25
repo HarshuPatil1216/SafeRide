@@ -9,8 +9,11 @@ public class StudentResponse {
     private String rollNumber;
     private String standard;
     private String division;
+
+    private Long parentId;
     private String parentName;
     private String parentPhone;
+
     private String address;
     private Boolean active;
     private LocalDateTime createdAt;
@@ -24,6 +27,7 @@ public class StudentResponse {
             String rollNumber,
             String standard,
             String division,
+            Long parentId,
             String parentName,
             String parentPhone,
             String address,
@@ -35,6 +39,7 @@ public class StudentResponse {
         this.rollNumber = rollNumber;
         this.standard = standard;
         this.division = division;
+        this.parentId = parentId;
         this.parentName = parentName;
         this.parentPhone = parentPhone;
         this.address = address;
@@ -60,6 +65,10 @@ public class StudentResponse {
 
     public String getDivision() {
         return division;
+    }
+
+    public Long getParentId() {
+        return parentId;
     }
 
     public String getParentName() {

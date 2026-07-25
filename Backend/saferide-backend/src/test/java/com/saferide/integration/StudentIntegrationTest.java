@@ -29,8 +29,7 @@ class StudentIntegrationTest {
         request.setRollNumber("INT001");
         request.setStandard("5");
         request.setDivision("A");
-        request.setParentName("Integration Parent");
-        request.setParentPhone("9999999998");
+        request.setParentId(1L);
         request.setAddress("Pune");
         request.setActive(true);
 

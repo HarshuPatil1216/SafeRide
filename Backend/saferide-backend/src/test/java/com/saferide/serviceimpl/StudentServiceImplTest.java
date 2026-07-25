@@ -2,9 +2,11 @@ package com.saferide.serviceimpl;
 
 import com.saferide.dto.CreateStudentRequest;
 import com.saferide.dto.StudentResponse;
+import com.saferide.entity.Parent;
 import com.saferide.entity.Student;
 import com.saferide.exception.DuplicateResourceException;
 import com.saferide.exception.ResourceNotFoundException;
+import com.saferide.repository.ParentRepository;
 import com.saferide.repository.StudentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,10 +27,14 @@ class StudentServiceImplTest {
     @Mock
     private StudentRepository studentRepository;
 
+    @Mock
+    private ParentRepository parentRepository;
+
     @InjectMocks
     private StudentServiceImpl studentService;
 
     private CreateStudentRequest request;
+    private Parent parent;
     private Student student;
 
     @BeforeEach
@@ -39,10 +45,17 @@ class StudentServiceImplTest {
         request.setRollNumber("STD001");
         request.setStandard("6");
         request.setDivision("B");
-        request.setParentName("Suresh Patil");
-        request.setParentPhone("9876543211");
+        request.setParentId(1L);
         request.setAddress("Pune City");
         request.setActive(true);
+
+        parent = new Parent();
+        parent.setId(1L);
+        parent.setFullName("Suresh Patil");
+        parent.setEmail("suresh.patil@gmail.com");
+        parent.setPhone("9876543211");
+        parent.setAddress("Pune City");
+        parent.setActive(true);
 
         student = new Student();
         student.setId(1L);
@@ -50,8 +63,7 @@ class StudentServiceImplTest {
         student.setRollNumber(request.getRollNumber());
         student.setStandard(request.getStandard());
         student.setDivision(request.getDivision());
-        student.setParentName(request.getParentName());
-        student.setParentPhone(request.getParentPhone());
+        student.setParent(parent);
         student.setAddress(request.getAddress());
         student.setActive(request.getActive());
     }
@@ -62,6 +74,9 @@ class StudentServiceImplTest {
         when(studentRepository.existsByRollNumber(
                 request.getRollNumber()
         )).thenReturn(false);
+
+        when(parentRepository.findById(1L))
+                .thenReturn(Optional.of(parent));
 
         when(studentRepository.save(any(Student.class)))
                 .thenReturn(student);
@@ -78,8 +93,14 @@ class StudentServiceImplTest {
         assertEquals("STD001", response.getRollNumber());
         assertEquals("6", response.getStandard());
         assertEquals("B", response.getDivision());
+
+        assertEquals(1L, response.getParentId());
+        assertEquals("Suresh Patil", response.getParentName());
+        assertEquals("9876543211", response.getParentPhone());
+
         assertTrue(response.getActive());
 
+        verify(parentRepository).findById(1L);
         verify(studentRepository)
                 .save(any(Student.class));
     }
@@ -99,6 +120,34 @@ class StudentServiceImplTest {
 
         assertEquals(
                 "Student roll number already exists",
+                exception.getMessage()
+        );
+
+        verify(parentRepository, never())
+                .findById(anyLong());
+
+        verify(studentRepository, never())
+                .save(any(Student.class));
+    }
+
+    @Test
+    void createStudent_shouldThrowWhenParentNotFound() {
+
+        when(studentRepository.existsByRollNumber(
+                request.getRollNumber()
+        )).thenReturn(false);
+
+        when(parentRepository.findById(1L))
+                .thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception =
+                assertThrows(
+                        ResourceNotFoundException.class,
+                        () -> studentService.createStudent(request)
+                );
+
+        assertEquals(
+                "Parent not found",
                 exception.getMessage()
         );
 
@@ -122,6 +171,8 @@ class StudentServiceImplTest {
                 "Aarav Suresh Patil",
                 response.getFullName()
         );
+        assertEquals(1L, response.getParentId());
+        assertEquals("Suresh Patil", response.getParentName());
     }
 
     @Test

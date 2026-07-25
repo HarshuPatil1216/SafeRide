@@ -1,7 +1,7 @@
 package com.saferide.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.NotNull;
 
 public class CreateStudentRequest {
 
@@ -17,15 +17,8 @@ public class CreateStudentRequest {
     @NotBlank(message = "Division is required")
     private String division;
 
-    @NotBlank(message = "Parent name is required")
-    private String parentName;
-
-    @NotBlank(message = "Parent phone is required")
-    @Pattern(
-            regexp = "^[0-9]{10}$",
-            message = "Parent phone must contain exactly 10 digits"
-    )
-    private String parentPhone;
+    @NotNull(message = "Parent ID is required")
+    private Long parentId;
 
     @NotBlank(message = "Address is required")
     private String address;
@@ -67,20 +60,12 @@ public class CreateStudentRequest {
         this.division = division;
     }
 
-    public String getParentName() {
-        return parentName;
+    public Long getParentId() {
+        return parentId;
     }
 
-    public void setParentName(String parentName) {
-        this.parentName = parentName;
-    }
-
-    public String getParentPhone() {
-        return parentPhone;
-    }
-
-    public void setParentPhone(String parentPhone) {
-        this.parentPhone = parentPhone;
+    public void setParentId(Long parentId) {
+        this.parentId = parentId;
     }
 
     public String getAddress() {
