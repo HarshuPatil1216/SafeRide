@@ -23,4 +23,7 @@ public interface NotificationRepository
             Long parentId,
             Boolean readStatus
     );
+
+
+    long countByReadStatus(Boolean readStatus);
 }

@@ -1,6 +1,6 @@
-package com.saferide.controller;
+package com.saferide.serviceimpl;
 
-import com.saferide.dto.DashboardResponse;
+import com.saferide.dto.AdminDashboardResponse;
 import com.saferide.enums.RideStatus;
 import com.saferide.repository.DriverRepository;
 import com.saferide.repository.NotificationRepository;
@@ -10,15 +10,13 @@ import com.saferide.repository.RouteRepository;
 import com.saferide.repository.StopRepository;
 import com.saferide.repository.StudentRepository;
 import com.saferide.repository.VehicleRepository;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.saferide.service.DashboardService;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-@RestController
-@RequestMapping("/api/dashboard")
-public class DashboardController {
+@Service
+public class DashboardServiceImpl
+        implements DashboardService {
 
     private final StudentRepository studentRepository;
     private final ParentRepository parentRepository;
@@ -29,7 +27,7 @@ public class DashboardController {
     private final RideRepository rideRepository;
     private final NotificationRepository notificationRepository;
 
-    public DashboardController(
+    public DashboardServiceImpl(
             StudentRepository studentRepository,
             ParentRepository parentRepository,
             DriverRepository driverRepository,
@@ -49,25 +47,40 @@ public class DashboardController {
         this.notificationRepository = notificationRepository;
     }
 
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    @GetMapping
-    public ResponseEntity<DashboardResponse> getDashboard() {
+    @Override
+    @Transactional(readOnly = true)
+    public AdminDashboardResponse getAdminDashboard() {
 
-        DashboardResponse response = new DashboardResponse(
-                studentRepository.count(),
-                parentRepository.count(),
-                driverRepository.count(),
-                vehicleRepository.count(),
-                routeRepository.count(),
-                stopRepository.count(),
-                rideRepository.count(),
-                rideRepository.countByStatus(RideStatus.COMPLETED),
-                rideRepository.countByStatus(RideStatus.IN_PROGRESS),
-                rideRepository.countByStatus(RideStatus.SCHEDULED),
-                notificationRepository.count(),
-                notificationRepository.countByReadStatus(false)
+        long totalStudents = studentRepository.count();
+        long totalParents = parentRepository.count();
+        long totalDrivers = driverRepository.count();
+        long totalVehicles = vehicleRepository.count();
+        long totalRoutes = routeRepository.count();
+        long totalStops = stopRepository.count();
+
+        long totalActiveRides =
+                rideRepository.countByStatus(
+                        RideStatus.IN_PROGRESS
+                );
+
+        long totalNotifications =
+                notificationRepository.count();
+
+        long unreadNotifications =
+                notificationRepository.countByReadStatus(
+                        false
+                );
+
+        return new AdminDashboardResponse(
+                totalStudents,
+                totalParents,
+                totalDrivers,
+                totalVehicles,
+                totalRoutes,
+                totalStops,
+                totalActiveRides,
+                totalNotifications,
+                unreadNotifications
         );
-
-        return ResponseEntity.ok(response);
     }
 }
