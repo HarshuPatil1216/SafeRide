@@ -32,4 +32,8 @@ public interface StudentRideEventRepository
             Long rideId,
             StudentRideEventType eventType
     );
+
+    long countByEventType(
+            StudentRideEventType eventType
+    );
 }
