@@ -2,13 +2,16 @@ package com.saferide.serviceimpl;
 
 import com.saferide.dto.RideResponse;
 import com.saferide.dto.StudentAttendanceReportResponse;
+import com.saferide.dto.VehicleLocationReportResponse;
 import com.saferide.entity.Ride;
 import com.saferide.entity.Stop;
 import com.saferide.entity.StudentRideEvent;
+import com.saferide.entity.VehicleLocation;
 import com.saferide.enums.RideStatus;
 import com.saferide.enums.StudentRideEventType;
 import com.saferide.repository.RideRepository;
 import com.saferide.repository.StudentRideEventRepository;
+import com.saferide.repository.VehicleLocationRepository;
 import com.saferide.service.ReportService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,13 +23,16 @@ public class ReportServiceImpl implements ReportService {
 
     private final RideRepository rideRepository;
     private final StudentRideEventRepository studentRideEventRepository;
+    private final VehicleLocationRepository vehicleLocationRepository;
 
     public ReportServiceImpl(
             RideRepository rideRepository,
-            StudentRideEventRepository studentRideEventRepository
+            StudentRideEventRepository studentRideEventRepository,
+            VehicleLocationRepository vehicleLocationRepository
     ) {
         this.rideRepository = rideRepository;
         this.studentRideEventRepository = studentRideEventRepository;
+        this.vehicleLocationRepository = vehicleLocationRepository;
     }
 
     @Override
@@ -102,6 +108,33 @@ public class ReportServiceImpl implements ReportService {
                 .toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<VehicleLocationReportResponse>
+    getAllVehicleLocations() {
+
+        return vehicleLocationRepository.findAll()
+                .stream()
+                .map(this::mapVehicleLocationToResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<VehicleLocationReportResponse>
+    getVehicleLocationReport(
+            Long vehicleId
+    ) {
+
+        return vehicleLocationRepository
+                .findByVehicleIdOrderByRecordedAtDesc(
+                        vehicleId
+                )
+                .stream()
+                .map(this::mapVehicleLocationToResponse)
+                .toList();
+    }
+
     private RideResponse mapRideToResponse(
             Ride ride
     ) {
@@ -150,6 +183,23 @@ public class ReportServiceImpl implements ReportService {
 
                 event.getEventTime(),
                 event.getRemarks()
+        );
+    }
+
+    private VehicleLocationReportResponse
+    mapVehicleLocationToResponse(
+            VehicleLocation location
+    ) {
+
+        return new VehicleLocationReportResponse(
+                location.getId(),
+                location.getVehicle().getId(),
+                location.getVehicle().getVehicleNumber(),
+                location.getLatitude(),
+                location.getLongitude(),
+                location.getSpeed(),
+                location.getHeading(),
+                location.getRecordedAt()
         );
     }
 }

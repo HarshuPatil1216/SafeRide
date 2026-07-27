@@ -2,16 +2,19 @@ package com.saferide.serviceimpl;
 
 import com.saferide.dto.RideResponse;
 import com.saferide.dto.StudentAttendanceReportResponse;
+import com.saferide.dto.VehicleLocationReportResponse;
 import com.saferide.entity.Driver;
 import com.saferide.entity.Ride;
 import com.saferide.entity.Stop;
 import com.saferide.entity.Student;
 import com.saferide.entity.StudentRideEvent;
 import com.saferide.entity.Vehicle;
+import com.saferide.entity.VehicleLocation;
 import com.saferide.enums.RideStatus;
 import com.saferide.enums.StudentRideEventType;
 import com.saferide.repository.RideRepository;
 import com.saferide.repository.StudentRideEventRepository;
+import com.saferide.repository.VehicleLocationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,6 +36,9 @@ class ReportServiceImplTest {
     @Mock
     private StudentRideEventRepository studentRideEventRepository;
 
+    @Mock
+    private VehicleLocationRepository vehicleLocationRepository;
+
     @InjectMocks
     private ReportServiceImpl reportService;
 
@@ -42,6 +48,8 @@ class ReportServiceImplTest {
 
     private StudentRideEvent pickupEvent;
     private StudentRideEvent dropEvent;
+
+    private VehicleLocation vehicleLocation;
 
     @BeforeEach
     void setUp() {
@@ -100,6 +108,15 @@ class ReportServiceImplTest {
                 StudentRideEventType.DROPPED_OFF,
                 "Student dropped off successfully"
         );
+
+        vehicleLocation = new VehicleLocation();
+        vehicleLocation.setId(1L);
+        vehicleLocation.setVehicle(vehicle);
+        vehicleLocation.setLatitude(18.5204);
+        vehicleLocation.setLongitude(73.8567);
+        vehicleLocation.setSpeed(42.5);
+        vehicleLocation.setHeading(90.0);
+        vehicleLocation.setActive(true);
     }
 
     @Test
@@ -119,14 +136,17 @@ class ReportServiceImplTest {
 
         assertNotNull(response);
         assertEquals(3, response.size());
+
         assertEquals(
                 RideStatus.COMPLETED,
                 response.get(0).getStatus()
         );
+
         assertEquals(
                 RideStatus.IN_PROGRESS,
                 response.get(1).getStatus()
         );
+
         assertEquals(
                 RideStatus.SCHEDULED,
                 response.get(2).getStatus()
@@ -145,6 +165,7 @@ class ReportServiceImplTest {
 
         assertNotNull(response);
         assertEquals(1, response.size());
+
         assertEquals(
                 RideStatus.COMPLETED,
                 response.getFirst().getStatus()
@@ -163,6 +184,7 @@ class ReportServiceImplTest {
 
         assertNotNull(response);
         assertEquals(1, response.size());
+
         assertEquals(
                 RideStatus.IN_PROGRESS,
                 response.getFirst().getStatus()
@@ -181,6 +203,7 @@ class ReportServiceImplTest {
 
         assertNotNull(response);
         assertEquals(1, response.size());
+
         assertEquals(
                 RideStatus.SCHEDULED,
                 response.getFirst().getStatus()
@@ -254,6 +277,7 @@ class ReportServiceImplTest {
 
         assertNotNull(response);
         assertEquals(1, response.size());
+
         assertEquals(
                 StudentRideEventType.PICKED_UP,
                 response.getFirst().getEventType()
@@ -276,6 +300,7 @@ class ReportServiceImplTest {
 
         assertNotNull(response);
         assertEquals(1, response.size());
+
         assertEquals(
                 StudentRideEventType.DROPPED_OFF,
                 response.getFirst().getEventType()
@@ -308,8 +333,123 @@ class ReportServiceImplTest {
 
         assertNotNull(response);
         assertEquals(1, response.size());
-        assertNull(response.getFirst().getStopId());
-        assertNull(response.getFirst().getStopName());
+
+        assertNull(
+                response.getFirst().getStopId()
+        );
+
+        assertNull(
+                response.getFirst().getStopName()
+        );
+    }
+
+    @Test
+    void getAllVehicleLocations_shouldReturnAllLocations() {
+
+        when(vehicleLocationRepository.findAll())
+                .thenReturn(List.of(vehicleLocation));
+
+        List<VehicleLocationReportResponse> response =
+                reportService.getAllVehicleLocations();
+
+        assertNotNull(response);
+        assertEquals(1, response.size());
+
+        assertEquals(
+                1L,
+                response.getFirst().getLocationId()
+        );
+
+        assertEquals(
+                3L,
+                response.getFirst().getVehicleId()
+        );
+
+        assertEquals(
+                "MH12AB1234",
+                response.getFirst().getVehicleNumber()
+        );
+
+        assertEquals(
+                18.5204,
+                response.getFirst().getLatitude()
+        );
+
+        assertEquals(
+                73.8567,
+                response.getFirst().getLongitude()
+        );
+
+        assertEquals(
+                42.5,
+                response.getFirst().getSpeed()
+        );
+
+        assertEquals(
+                90.0,
+                response.getFirst().getHeading()
+        );
+    }
+
+    @Test
+    void getVehicleLocationReport_shouldReturnLocationsForVehicle() {
+
+        when(vehicleLocationRepository
+                .findByVehicleIdOrderByRecordedAtDesc(3L))
+                .thenReturn(List.of(vehicleLocation));
+
+        List<VehicleLocationReportResponse> response =
+                reportService.getVehicleLocationReport(3L);
+
+        assertNotNull(response);
+        assertEquals(1, response.size());
+
+        assertEquals(
+                3L,
+                response.getFirst().getVehicleId()
+        );
+
+        assertEquals(
+                "MH12AB1234",
+                response.getFirst().getVehicleNumber()
+        );
+
+        assertEquals(
+                42.5,
+                response.getFirst().getSpeed()
+        );
+
+        assertEquals(
+                90.0,
+                response.getFirst().getHeading()
+        );
+    }
+
+    @Test
+    void getAllVehicleLocations_shouldReturnEmptyList_WhenNoLocationsExist() {
+
+        when(vehicleLocationRepository.findAll())
+                .thenReturn(List.of());
+
+        List<VehicleLocationReportResponse> response =
+                reportService.getAllVehicleLocations();
+
+        assertNotNull(response);
+        assertTrue(response.isEmpty());
+    }
+
+    @Test
+    void getVehicleLocationReport_shouldReturnEmptyList_WhenVehicleHasNoLocations() {
+
+        when(vehicleLocationRepository
+                .findByVehicleIdOrderByRecordedAtDesc(999L))
+                .thenReturn(List.of());
+
+        List<VehicleLocationReportResponse> response =
+                reportService.getVehicleLocationReport(999L);
+
+        assertNotNull(response);
+        assertTrue(response.isEmpty());
     }
 
     private Ride createRide(
@@ -339,7 +479,9 @@ class ReportServiceImplTest {
             String remarks
     ) {
 
-        StudentRideEvent event = new StudentRideEvent();
+        StudentRideEvent event =
+                new StudentRideEvent();
+
         event.setId(id);
         event.setStudent(student);
         event.setRide(ride);

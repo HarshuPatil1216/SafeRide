@@ -2,10 +2,10 @@ package com.saferide.controller;
 
 import com.saferide.dto.RideResponse;
 import com.saferide.dto.StudentAttendanceReportResponse;
+import com.saferide.dto.VehicleLocationReportResponse;
 import com.saferide.enums.StudentRideEventType;
 import com.saferide.service.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,7 +17,7 @@ import java.util.List;
 @RequestMapping("/api/reports")
 @Tag(
         name = "Reports",
-        description = "APIs for ride and student attendance reports"
+        description = "APIs for ride, attendance and vehicle location reports"
 )
 public class ReportController {
 
@@ -29,14 +29,7 @@ public class ReportController {
         this.reportService = reportService;
     }
 
-    @Operation(
-            summary = "Get all ride reports",
-            description = "Returns all rides available in the system"
-    )
-    @ApiResponse(
-            responseCode = "200",
-            description = "All ride reports returned successfully"
-    )
+    @Operation(summary = "Get all ride reports")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("/rides")
     public ResponseEntity<List<RideResponse>> getAllRides() {
@@ -46,10 +39,7 @@ public class ReportController {
         );
     }
 
-    @Operation(
-            summary = "Get completed ride reports",
-            description = "Returns all completed rides"
-    )
+    @Operation(summary = "Get completed ride reports")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("/rides/completed")
     public ResponseEntity<List<RideResponse>> getCompletedRides() {
@@ -59,10 +49,7 @@ public class ReportController {
         );
     }
 
-    @Operation(
-            summary = "Get running ride reports",
-            description = "Returns all rides currently in progress"
-    )
+    @Operation(summary = "Get running ride reports")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("/rides/running")
     public ResponseEntity<List<RideResponse>> getRunningRides() {
@@ -72,10 +59,7 @@ public class ReportController {
         );
     }
 
-    @Operation(
-            summary = "Get scheduled ride reports",
-            description = "Returns all scheduled rides"
-    )
+    @Operation(summary = "Get scheduled ride reports")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("/rides/scheduled")
     public ResponseEntity<List<RideResponse>> getScheduledRides() {
@@ -85,10 +69,7 @@ public class ReportController {
         );
     }
 
-    @Operation(
-            summary = "Get all student attendance events",
-            description = "Returns all pickup and drop-off events"
-    )
+    @Operation(summary = "Get all attendance reports")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("/attendance")
     public ResponseEntity<List<StudentAttendanceReportResponse>>
@@ -99,10 +80,7 @@ public class ReportController {
         );
     }
 
-    @Operation(
-            summary = "Get attendance events by type",
-            description = "Returns pickup or drop-off events by event type"
-    )
+    @Operation(summary = "Get attendance reports by event type")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("/attendance/type")
     public ResponseEntity<List<StudentAttendanceReportResponse>>
@@ -113,6 +91,32 @@ public class ReportController {
         return ResponseEntity.ok(
                 reportService.getAttendanceEventsByType(
                         eventType
+                )
+        );
+    }
+
+    @Operation(summary = "Get all vehicle location reports")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @GetMapping("/vehicle-locations")
+    public ResponseEntity<List<VehicleLocationReportResponse>>
+    getAllVehicleLocations() {
+
+        return ResponseEntity.ok(
+                reportService.getAllVehicleLocations()
+        );
+    }
+
+    @Operation(summary = "Get vehicle location report by vehicle ID")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @GetMapping("/vehicle-locations/{vehicleId}")
+    public ResponseEntity<List<VehicleLocationReportResponse>>
+    getVehicleLocationReport(
+            @PathVariable Long vehicleId
+    ) {
+
+        return ResponseEntity.ok(
+                reportService.getVehicleLocationReport(
+                        vehicleId
                 )
         );
     }

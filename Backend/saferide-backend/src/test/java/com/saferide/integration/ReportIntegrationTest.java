@@ -21,9 +21,8 @@ class ReportIntegrationTest {
             throws Exception {
 
         mockMvc.perform(
-                        get("/api/reports/rides")
-                )
-                .andExpect(status().isForbidden());
+                get("/api/reports/rides")
+        ).andExpect(status().isForbidden());
     }
 
     @Test
@@ -31,9 +30,8 @@ class ReportIntegrationTest {
             throws Exception {
 
         mockMvc.perform(
-                        get("/api/reports/rides/completed")
-                )
-                .andExpect(status().isForbidden());
+                get("/api/reports/rides/completed")
+        ).andExpect(status().isForbidden());
     }
 
     @Test
@@ -41,9 +39,8 @@ class ReportIntegrationTest {
             throws Exception {
 
         mockMvc.perform(
-                        get("/api/reports/rides/running")
-                )
-                .andExpect(status().isForbidden());
+                get("/api/reports/rides/running")
+        ).andExpect(status().isForbidden());
     }
 
     @Test
@@ -51,32 +48,54 @@ class ReportIntegrationTest {
             throws Exception {
 
         mockMvc.perform(
-                        get("/api/reports/rides/scheduled")
-                )
-                .andExpect(status().isForbidden());
+                get("/api/reports/rides/scheduled")
+        ).andExpect(status().isForbidden());
     }
 
     @Test
-    void getAllAttendanceReports_shouldReturnForbidden_WhenNoToken()
+    void getAttendanceReports_shouldReturnForbidden_WhenNoToken()
             throws Exception {
 
         mockMvc.perform(
-                        get("/api/reports/attendance")
-                )
-                .andExpect(status().isForbidden());
+                get("/api/reports/attendance")
+        ).andExpect(status().isForbidden());
     }
 
     @Test
-    void getAttendanceReportsByType_shouldReturnForbidden_WhenNoToken()
+    void getPickupAttendanceReport_shouldReturnForbidden_WhenNoToken()
             throws Exception {
 
         mockMvc.perform(
-                        get("/api/reports/attendance/type")
-                                .param(
-                                        "eventType",
-                                        "PICKED_UP"
-                                )
-                )
-                .andExpect(status().isForbidden());
+                get("/api/reports/attendance/type")
+                        .param("eventType", "PICKED_UP")
+        ).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getDropAttendanceReport_shouldReturnForbidden_WhenNoToken()
+            throws Exception {
+
+        mockMvc.perform(
+                get("/api/reports/attendance/type")
+                        .param("eventType", "DROPPED_OFF")
+        ).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getVehicleLocationReports_shouldReturnForbidden_WhenNoToken()
+            throws Exception {
+
+        mockMvc.perform(
+                get("/api/reports/vehicle-locations")
+        ).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getVehicleLocationReportByVehicle_shouldReturnForbidden_WhenNoToken()
+            throws Exception {
+
+        mockMvc.perform(
+                get("/api/reports/vehicle-locations/3")
+        ).andExpect(status().isForbidden());
     }
 }
