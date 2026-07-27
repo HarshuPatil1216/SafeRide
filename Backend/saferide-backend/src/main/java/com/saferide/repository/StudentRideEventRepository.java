@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface StudentRideEventRepository
@@ -34,6 +35,10 @@ public interface StudentRideEventRepository
     );
 
     long countByEventType(
+            StudentRideEventType eventType
+    );
+
+    List<StudentRideEvent> findByEventTypeOrderByEventTimeDesc(
             StudentRideEventType eventType
     );
 }
