@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
 
     environment:
-      MYSQL_ROOT_PASSWORD: "1216"
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: saferide_db
 
     ports:
@@ -18,7 +18,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "mysqladmin ping -h localhost -uroot -p1216 --silent"
+          "mysqladmin ping -h localhost -uroot -p${DB_PASSWORD} --silent"
         ]
       interval: 10s
       timeout: 5s
@@ -41,9 +41,13 @@ services:
       - "8081:8080"
 
     environment:
-      DB_URL: jdbc:mysql://mysql:3306/saferide_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      DB_USERNAME: root
-      DB_PASSWORD: "1216"
+      DB_URL: ${DB_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      SERVER_PORT: ${SERVER_PORT}
+      JPA_DDL_AUTO: ${JPA_DDL_AUTO}
+      JPA_SHOW_SQL: ${JPA_SHOW_SQL}
+      SECURITY_LOG_LEVEL: ${SECURITY_LOG_LEVEL}
 
 volumes:
   mysql-data:
