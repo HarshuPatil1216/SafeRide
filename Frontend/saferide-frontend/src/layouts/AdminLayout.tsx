@@ -1,6 +1,8 @@
 import { Box } from '@mui/material';
 import { Outlet } from 'react-router-dom';
+
 import Sidebar from '../components/layout/Sidebar';
+import TopNavbar from '../components/layout/TopNavbar';
 
 function AdminLayout() {
     return (
@@ -14,14 +16,24 @@ function AdminLayout() {
             <Sidebar />
 
             <Box
-                component="main"
                 sx={{
                     flexGrow: 1,
                     minWidth: 0,
-                    p: 3,
+                    display: 'flex',
+                    flexDirection: 'column',
                 }}
             >
-                <Outlet />
+                <TopNavbar />
+
+                <Box
+                    component="main"
+                    sx={{
+                        flexGrow: 1,
+                        p: 3,
+                    }}
+                >
+                    <Outlet />
+                </Box>
             </Box>
         </Box>
     );
