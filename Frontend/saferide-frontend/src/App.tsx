@@ -3,14 +3,21 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import AdminLayout from './layouts/AdminLayout';
 import LoginPage from './pages/auth/LoginPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
+import StudentsPage from './pages/students/StudentsPage';
 import ProtectedRoute from './routes/ProtectedRoute';
 
 function App() {
     return (
         <Routes>
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route
+                path="/"
+                element={<Navigate to="/login" replace />}
+            />
 
-            <Route path="/login" element={<LoginPage />} />
+            <Route
+                path="/login"
+                element={<LoginPage />}
+            />
 
             <Route element={<ProtectedRoute />}>
                 <Route element={<AdminLayout />}>
@@ -18,10 +25,18 @@ function App() {
                         path="/dashboard"
                         element={<DashboardPage />}
                     />
+
+                    <Route
+                        path="/students"
+                        element={<StudentsPage />}
+                    />
                 </Route>
             </Route>
 
-            <Route path="*" element={<Navigate to="/login" replace />} />
+            <Route
+                path="*"
+                element={<Navigate to="/login" replace />}
+            />
         </Routes>
     );
 }
