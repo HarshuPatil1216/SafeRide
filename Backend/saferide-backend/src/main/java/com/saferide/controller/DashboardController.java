@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/dashboard")
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class DashboardController {
 
     private final StudentRepository studentRepository;
