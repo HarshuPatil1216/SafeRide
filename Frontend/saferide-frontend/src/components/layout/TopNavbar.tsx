@@ -1,4 +1,4 @@
-import { Notifications } from '@mui/icons-material';
+import { Logout, Notifications } from '@mui/icons-material';
 import {
     AppBar,
     Avatar,
@@ -8,8 +8,16 @@ import {
     Toolbar,
     Typography,
 } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 function TopNavbar() {
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        navigate('/login', { replace: true });
+    };
+
     return (
         <AppBar
             position="static"
@@ -46,6 +54,14 @@ function TopNavbar() {
                         <Badge badgeContent={3} color="error">
                             <Notifications />
                         </Badge>
+                    </IconButton>
+
+                    <IconButton
+                        aria-label="logout"
+                        color="inherit"
+                        onClick={handleLogout}
+                    >
+                        <Logout />
                     </IconButton>
 
                     <Avatar
