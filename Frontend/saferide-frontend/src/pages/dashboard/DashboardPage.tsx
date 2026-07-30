@@ -4,51 +4,89 @@ import {
     Route,
     School,
 } from '@mui/icons-material';
-import Grid from '@mui/material/Grid';
+import {
+    Alert,
+    CircularProgress,
+    Grid,
+    Stack,
+} from '@mui/material';
 
 import DashboardHeader from '../../components/dashboard/DashboardHeader';
 import QuickActions from '../../components/dashboard/QuickActions';
 import RecentActivities from '../../components/dashboard/RecentActivities';
 import StatCard from '../../components/dashboard/StatCard';
+import useDashboard from '../../hooks/useDashboard';
 
 function DashboardPage() {
+    const {
+        data,
+        isLoading,
+        isError,
+        error,
+    } = useDashboard();
+
     return (
         <>
             <DashboardHeader />
 
-            <Grid container spacing={3}>
-                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <StatCard
-                        title="Students"
-                        value={245}
-                        icon={<School />}
-                    />
-                </Grid>
+            {isLoading && (
+                <Stack
+                    sx={{
+                        minHeight: 180,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}
+                >
+                    <CircularProgress />
+                </Stack>
+            )}
 
-                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <StatCard
-                        title="Drivers"
-                        value={18}
-                        icon={<People />}
-                    />
-                </Grid>
+            {isError && (
+                <Alert
+                    severity="error"
+                    sx={{
+                        mb: 3,
+                    }}
+                >
+                    {error.message || 'Dashboard data load करता आली नाही.'}
+                </Alert>
+            )}
 
-                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <StatCard
-                        title="Vehicles"
-                        value={12}
-                        icon={<DirectionsBus />}
-                    />
-                </Grid>
+            {data && (
+                <Grid container spacing={3}>
+                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                        <StatCard
+                            title="Students"
+                            value={data.totalStudents}
+                            icon={<School />}
+                        />
+                    </Grid>
 
-                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <StatCard
-                        title="Routes"
-                        value={9}
-                        icon={<Route />}
-                    />
+                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                        <StatCard
+                            title="Drivers"
+                            value={data.totalDrivers}
+                            icon={<People />}
+                        />
+                    </Grid>
+
+                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                        <StatCard
+                            title="Vehicles"
+                            value={data.totalVehicles}
+                            icon={<DirectionsBus />}
+                        />
+                    </Grid>
+
+                    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                        <StatCard
+                            title="Routes"
+                            value={data.totalRoutes}
+                            icon={<Route />}
+                        />
+                    </Grid>
                 </Grid>
-            </Grid>
+            )}
 
             <QuickActions />
 

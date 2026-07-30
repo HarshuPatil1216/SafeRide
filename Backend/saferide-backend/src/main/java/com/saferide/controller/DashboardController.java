@@ -49,7 +49,6 @@ public class DashboardController {
         this.notificationRepository = notificationRepository;
     }
 
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping
     public ResponseEntity<DashboardResponse> getDashboard() {
 
