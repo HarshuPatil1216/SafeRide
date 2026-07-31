@@ -12,19 +12,25 @@ import {
     TableHead,
     TablePagination,
     TableRow,
-    TextField,
     Typography,
 } from '@mui/material';
 import { useState } from 'react';
 
+import AddStudentDialog from '../../components/students/AddStudentDialog';
+import StudentToolbar from '../../components/students/StudentToolbar';
 import useStudents from '../../hooks/useStudents';
 
 function StudentsPage() {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [search, setSearch] = useState('');
+    const [addDialogOpen, setAddDialogOpen] = useState(false);
 
-    const { data, isLoading, isError } = useStudents({
+    const {
+        data,
+        isLoading,
+        isError,
+    } = useStudents({
         page,
         size: rowsPerPage,
         sortBy: 'id',
@@ -46,11 +52,17 @@ function StudentsPage() {
         setPage(0);
     };
 
-    const handleSearchChange = (
-        event: React.ChangeEvent<HTMLInputElement>
-    ) => {
-        setSearch(event.target.value);
+    const handleSearchChange = (value: string) => {
+        setSearch(value);
         setPage(0);
+    };
+
+    const handleOpenAddDialog = () => {
+        setAddDialogOpen(true);
+    };
+
+    const handleCloseAddDialog = () => {
+        setAddDialogOpen(false);
     };
 
     return (
@@ -65,23 +77,28 @@ function StudentsPage() {
                     Students
                 </Typography>
 
-                <Typography color="text.secondary">
+                <Typography
+                    sx={{
+                        color: 'text.secondary',
+                    }}
+                >
                     View and manage all registered students.
                 </Typography>
             </Box>
 
             <Paper
+                elevation={0}
                 sx={{
                     p: 2,
+                    border: '1px solid',
+                    borderColor: 'divider',
                     borderRadius: 3,
                 }}
             >
-                <TextField
-                    label="Search by name or roll number"
-                    value={search}
-                    onChange={handleSearchChange}
-                    fullWidth
-                    size="small"
+                <StudentToolbar
+                    search={search}
+                    onSearchChange={handleSearchChange}
+                    onAddClick={handleOpenAddDialog}
                 />
             </Paper>
 
@@ -105,7 +122,10 @@ function StudentsPage() {
 
             {!isLoading && !isError && (
                 <Paper
+                    elevation={0}
                     sx={{
+                        border: '1px solid',
+                        borderColor: 'divider',
                         borderRadius: 3,
                         overflow: 'hidden',
                     }}
@@ -208,6 +228,11 @@ function StudentsPage() {
                     />
                 </Paper>
             )}
+
+            <AddStudentDialog
+                open={addDialogOpen}
+                onClose={handleCloseAddDialog}
+            />
         </Stack>
     );
 }

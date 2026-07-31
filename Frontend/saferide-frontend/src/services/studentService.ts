@@ -81,3 +81,21 @@ export async function getStudents(
 
     return response.data;
 }
+export type CreateStudentRequest = {
+    fullName: string;
+    rollNumber: string;
+    standard: string;
+    division: string;
+    parentId: number;
+    routeId?: number | null;
+    stopId?: number | null;
+    address: string;
+    active?: boolean;
+};
+
+export async function createStudent(
+    payload: CreateStudentRequest
+): Promise<Student> {
+    const response = await studentApi.post<Student>('', payload);
+    return response.data;
+}

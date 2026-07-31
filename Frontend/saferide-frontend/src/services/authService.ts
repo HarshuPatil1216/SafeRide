@@ -20,7 +20,7 @@ const authApi = axios.create({
 export async function loginUser(
     credentials: LoginRequest
 ): Promise<LoginResponse> {
-    const response = await authApi.post<LoginResponse>(
+    const response   = await authApi.post<LoginResponse>(
         '/login',
         credentials
     );
