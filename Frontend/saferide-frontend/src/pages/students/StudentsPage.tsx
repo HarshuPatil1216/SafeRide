@@ -1,3 +1,13 @@
+import { useState, type ChangeEvent } from 'react';
+import {
+    Edit,
+    Delete,
+} from '@mui/icons-material';
+
+import {
+    IconButton,
+    Tooltip,
+} from '@mui/material';
 import {
     Alert,
     Box,
@@ -14,10 +24,10 @@ import {
     TableRow,
     Typography,
 } from '@mui/material';
-import { useState } from 'react';
 
 import AddStudentDialog from '../../components/students/AddStudentDialog';
 import StudentToolbar from '../../components/students/StudentToolbar';
+
 import useStudents from '../../hooks/useStudents';
 
 function StudentsPage() {
@@ -46,7 +56,7 @@ function StudentsPage() {
     };
 
     const handleRowsPerPageChange = (
-        event: React.ChangeEvent<HTMLInputElement>
+        event: ChangeEvent<HTMLInputElement>
     ) => {
         setRowsPerPage(Number(event.target.value));
         setPage(0);
@@ -70,18 +80,12 @@ function StudentsPage() {
             <Box>
                 <Typography
                     variant="h4"
-                    sx={{
-                        fontWeight: 700,
-                    }}
+                    sx={{ fontWeight: 700 }}
                 >
                     Students
                 </Typography>
 
-                <Typography
-                    sx={{
-                        color: 'text.secondary',
-                    }}
-                >
+                <Typography sx={{ color: 'text.secondary' }}>
                     View and manage all registered students.
                 </Typography>
             </Box>
@@ -142,6 +146,19 @@ function StudentsPage() {
                                     <TableCell>Route</TableCell>
                                     <TableCell>Stop</TableCell>
                                     <TableCell>Status</TableCell>
+                                    <TableCell align="center">
+                                        <Tooltip title="Edit Student">
+                                            <IconButton color="primary" size="small">
+                                                <Edit />
+                                            </IconButton>
+                                        </Tooltip>
+
+                                        <Tooltip title="Delete Student">
+                                            <IconButton color="error" size="small">
+                                                <Delete />
+                                            </IconButton>
+                                        </Tooltip>
+                                    </TableCell>
                                 </TableRow>
                             </TableHead>
 
@@ -164,8 +181,7 @@ function StudentsPage() {
                                         </TableCell>
 
                                         <TableCell>
-                                            {student.standard}-
-                                            {student.division}
+                                            {student.standard} - {student.division}
                                         </TableCell>
 
                                         <TableCell>
@@ -201,11 +217,9 @@ function StudentsPage() {
                                 {data?.content.length === 0 && (
                                     <TableRow>
                                         <TableCell
-                                            colSpan={8}
+                                            colSpan={9}
                                             align="center"
-                                            sx={{
-                                                py: 5,
-                                            }}
+                                            sx={{ py: 5 }}
                                         >
                                             No students found.
                                         </TableCell>
@@ -221,9 +235,7 @@ function StudentsPage() {
                         page={page}
                         rowsPerPage={rowsPerPage}
                         onPageChange={handlePageChange}
-                        onRowsPerPageChange={
-                            handleRowsPerPageChange
-                        }
+                        onRowsPerPageChange={handleRowsPerPageChange}
                         rowsPerPageOptions={[5, 10, 25, 50]}
                     />
                 </Paper>

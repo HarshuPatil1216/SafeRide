@@ -99,3 +99,23 @@ export async function createStudent(
     const response = await studentApi.post<Student>('', payload);
     return response.data;
 }
+export async function getStudentById(
+    id: number
+): Promise<Student> {
+    const response = await studentApi.get<Student>(`/${id}`);
+    return response.data;
+}
+
+export async function updateStudent(
+    id: number,
+    payload: CreateStudentRequest
+): Promise<Student> {
+    const response = await studentApi.put<Student>(`/${id}`, payload);
+    return response.data;
+}
+
+export async function deleteStudent(
+    id: number
+): Promise<void> {
+    await studentApi.delete(`/${id}`);
+}
