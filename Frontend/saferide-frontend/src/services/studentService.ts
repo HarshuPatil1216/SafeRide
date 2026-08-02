@@ -1,5 +1,5 @@
 import axios from 'axios';
-
+export type UpdateStudentRequest = CreateStudentRequest;
 export type Student = {
     id: number;
     fullName: string;

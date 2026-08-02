@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+
 import {
     Alert,
     Button,
@@ -8,12 +10,13 @@ import {
     Grid,
     TextField,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
 
-import useCreateStudent from '../../hooks/useCreateStudent';
+import useUpdateStudent from '../../hooks/useUpdateStudent';
+import type { Student } from '../../services/studentService';
 
-type AddStudentDialogProps = {
+type EditStudentDialogProps = {
     open: boolean;
+    student: Student | null;
     onClose: () => void;
 };
 
@@ -39,50 +42,56 @@ const initialFormState: StudentFormState = {
     address: '',
 };
 
-function AddStudentDialog({
-                              open,
-                              onClose,
-                          }: AddStudentDialogProps) {
-    const createStudentMutation = useCreateStudent();
+function EditStudentDialog({
+                               open,
+                               student,
+                               onClose,
+                           }: EditStudentDialogProps) {
+
+    const updateStudentMutation = useUpdateStudent();
 
     const [form, setForm] =
         useState<StudentFormState>(initialFormState);
 
     const [validationError, setValidationError] =
         useState('');
-
     useEffect(() => {
         if (!open) {
-            setForm(initialFormState);
-            setValidationError('');
-            createStudentMutation.reset();
+            return;
         }
-    }, [open]);
+
+        if (student) {
+            setForm({
+                fullName: student.fullName,
+                rollNumber: student.rollNumber,
+                standard: student.standard,
+                division: student.division,
+                parentId: String(student.parentId),
+                routeId: student.routeId ? String(student.routeId) : '',
+                stopId: student.stopId ? String(student.stopId) : '',
+                address: student.address,
+            });
+
+            setValidationError('');
+        }
+    }, [open, student]);
 
     const handleFieldChange = (
         field: keyof StudentFormState,
         value: string
     ) => {
-        setForm((currentForm) => ({
-            ...currentForm,
+        setForm((current) => ({
+            ...current,
             [field]: value,
         }));
 
         setValidationError('');
     };
-
-    const handleClose = () => {
-        if (createStudentMutation.isPending) {
+    const handleSubmit = () => {
+        if (!student) {
             return;
         }
 
-        setForm(initialFormState);
-        setValidationError('');
-        createStudentMutation.reset();
-        onClose();
-    };
-
-    const handleSubmit = () => {
         if (
             !form.fullName.trim() ||
             !form.rollNumber.trim() ||
@@ -115,22 +124,23 @@ function AddStudentDialog({
             return;
         }
 
-        createStudentMutation.mutate(
+        updateStudentMutation.mutate(
             {
-                fullName: form.fullName.trim(),
-                rollNumber: form.rollNumber.trim(),
-                standard: form.standard.trim(),
-                division: form.division.trim(),
-                parentId,
-                routeId,
-                stopId,
-                address: form.address.trim(),
-                active: true,
+                id: student.id,
+                payload: {
+                    fullName: form.fullName.trim(),
+                    rollNumber: form.rollNumber.trim(),
+                    standard: form.standard.trim(),
+                    division: form.division.trim(),
+                    parentId,
+                    routeId,
+                    stopId,
+                    address: form.address.trim(),
+                    active: student.active,
+                },
             },
             {
                 onSuccess: () => {
-                    setForm(initialFormState);
-                    setValidationError('');
                     onClose();
                 },
             }
@@ -140,44 +150,37 @@ function AddStudentDialog({
     return (
         <Dialog
             open={open}
-            onClose={handleClose}
+            onClose={onClose}
             fullWidth
             maxWidth="md"
         >
-            <DialogTitle>Add Student</DialogTitle>
+            <DialogTitle>Edit Student</DialogTitle>
 
             <DialogContent>
+
                 {validationError && (
                     <Alert
                         severity="warning"
-                        sx={{
-                            mt: 1,
-                            mb: 2,
-                        }}
+                        sx={{ mt: 2, mb: 2 }}
                     >
                         {validationError}
                     </Alert>
                 )}
 
-                {createStudentMutation.isError && (
+                {updateStudentMutation.isError && (
                     <Alert
                         severity="error"
-                        sx={{
-                            mt: 1,
-                            mb: 2,
-                        }}
+                        sx={{ mt: 2, mb: 2 }}
                     >
-                        {createStudentMutation.error.message ||
-                            'Student could not be created.'}
+                        {updateStudentMutation.error.message ||
+                            'Failed to update student.'}
                     </Alert>
                 )}
 
                 <Grid
                     container
                     spacing={2}
-                    sx={{
-                        mt: 1,
-                    }}
+                    sx={{ mt: 1 }}
                 >
                     <Grid size={{ xs: 12, md: 6 }}>
                         <TextField
@@ -185,14 +188,11 @@ function AddStudentDialog({
                             required
                             label="Full Name"
                             value={form.fullName}
-                            onChange={(event) =>
+                            onChange={(e) =>
                                 handleFieldChange(
                                     'fullName',
-                                    event.target.value
+                                    e.target.value
                                 )
-                            }
-                            disabled={
-                                createStudentMutation.isPending
                             }
                         />
                     </Grid>
@@ -203,14 +203,11 @@ function AddStudentDialog({
                             required
                             label="Roll Number"
                             value={form.rollNumber}
-                            onChange={(event) =>
+                            onChange={(e) =>
                                 handleFieldChange(
                                     'rollNumber',
-                                    event.target.value
+                                    e.target.value
                                 )
-                            }
-                            disabled={
-                                createStudentMutation.isPending
                             }
                         />
                     </Grid>
@@ -221,14 +218,11 @@ function AddStudentDialog({
                             required
                             label="Standard"
                             value={form.standard}
-                            onChange={(event) =>
+                            onChange={(e) =>
                                 handleFieldChange(
                                     'standard',
-                                    event.target.value
+                                    e.target.value
                                 )
-                            }
-                            disabled={
-                                createStudentMutation.isPending
                             }
                         />
                     </Grid>
@@ -239,14 +233,11 @@ function AddStudentDialog({
                             required
                             label="Division"
                             value={form.division}
-                            onChange={(event) =>
+                            onChange={(e) =>
                                 handleFieldChange(
                                     'division',
-                                    event.target.value
+                                    e.target.value
                                 )
-                            }
-                            disabled={
-                                createStudentMutation.isPending
                             }
                         />
                     </Grid>
@@ -255,22 +246,14 @@ function AddStudentDialog({
                         <TextField
                             fullWidth
                             required
-                            label="Parent ID"
                             type="number"
+                            label="Parent ID"
                             value={form.parentId}
-                            onChange={(event) =>
+                            onChange={(e) =>
                                 handleFieldChange(
                                     'parentId',
-                                    event.target.value
+                                    e.target.value
                                 )
-                            }
-                            slotProps={{
-                                htmlInput: {
-                                    min: 1,
-                                },
-                            }}
-                            disabled={
-                                createStudentMutation.isPending
                             }
                         />
                     </Grid>
@@ -278,22 +261,14 @@ function AddStudentDialog({
                     <Grid size={{ xs: 12, md: 6 }}>
                         <TextField
                             fullWidth
-                            label="Route ID"
                             type="number"
+                            label="Route ID"
                             value={form.routeId}
-                            onChange={(event) =>
+                            onChange={(e) =>
                                 handleFieldChange(
                                     'routeId',
-                                    event.target.value
+                                    e.target.value
                                 )
-                            }
-                            slotProps={{
-                                htmlInput: {
-                                    min: 1,
-                                },
-                            }}
-                            disabled={
-                                createStudentMutation.isPending
                             }
                         />
                     </Grid>
@@ -301,22 +276,14 @@ function AddStudentDialog({
                     <Grid size={{ xs: 12, md: 6 }}>
                         <TextField
                             fullWidth
-                            label="Stop ID"
                             type="number"
+                            label="Stop ID"
                             value={form.stopId}
-                            onChange={(event) =>
+                            onChange={(e) =>
                                 handleFieldChange(
                                     'stopId',
-                                    event.target.value
+                                    e.target.value
                                 )
-                            }
-                            slotProps={{
-                                htmlInput: {
-                                    min: 1,
-                                },
-                            }}
-                            disabled={
-                                createStudentMutation.isPending
                             }
                         />
                     </Grid>
@@ -329,26 +296,24 @@ function AddStudentDialog({
                             rows={3}
                             label="Address"
                             value={form.address}
-                            onChange={(event) =>
+                            onChange={(e) =>
                                 handleFieldChange(
                                     'address',
-                                    event.target.value
+                                    e.target.value
                                 )
-                            }
-                            disabled={
-                                createStudentMutation.isPending
                             }
                         />
                     </Grid>
                 </Grid>
+
             </DialogContent>
 
             <DialogActions>
                 <Button
-                    onClick={handleClose}
                     color="inherit"
+                    onClick={onClose}
                     disabled={
-                        createStudentMutation.isPending
+                        updateStudentMutation.isPending
                     }
                 >
                     Cancel
@@ -358,16 +323,16 @@ function AddStudentDialog({
                     variant="contained"
                     onClick={handleSubmit}
                     disabled={
-                        createStudentMutation.isPending
+                        updateStudentMutation.isPending
                     }
                 >
-                    {createStudentMutation.isPending
-                        ? 'Saving...'
-                        : 'Save Student'}
+                    {updateStudentMutation.isPending
+                        ? 'Updating...'
+                        : 'Update Student'}
                 </Button>
             </DialogActions>
         </Dialog>
     );
 }
 
-export default AddStudentDialog;
+export default EditStudentDialog;

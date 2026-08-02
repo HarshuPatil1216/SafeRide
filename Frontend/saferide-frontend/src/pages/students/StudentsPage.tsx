@@ -1,18 +1,16 @@
 import { useState, type ChangeEvent } from 'react';
+
 import {
     Edit,
     Delete,
 } from '@mui/icons-material';
 
 import {
-    IconButton,
-    Tooltip,
-} from '@mui/material';
-import {
     Alert,
     Box,
     Chip,
     CircularProgress,
+    IconButton,
     Paper,
     Stack,
     Table,
@@ -22,19 +20,32 @@ import {
     TableHead,
     TablePagination,
     TableRow,
+    Tooltip,
     Typography,
 } from '@mui/material';
 
 import AddStudentDialog from '../../components/students/AddStudentDialog';
+import EditStudentDialog from '../../components/students/EditStudentDialog';
 import StudentToolbar from '../../components/students/StudentToolbar';
 
 import useStudents from '../../hooks/useStudents';
 
+import type { Student } from '../../services/studentService';
+
 function StudentsPage() {
+
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [search, setSearch] = useState('');
-    const [addDialogOpen, setAddDialogOpen] = useState(false);
+
+    const [addDialogOpen, setAddDialogOpen] =
+        useState(false);
+
+    const [editDialogOpen, setEditDialogOpen] =
+        useState(false);
+
+    const [selectedStudent, setSelectedStudent] =
+        useState<Student | null>(null);
 
     const {
         data,
@@ -62,7 +73,9 @@ function StudentsPage() {
         setPage(0);
     };
 
-    const handleSearchChange = (value: string) => {
+    const handleSearchChange = (
+        value: string
+    ) => {
         setSearch(value);
         setPage(0);
     };
@@ -75,17 +88,36 @@ function StudentsPage() {
         setAddDialogOpen(false);
     };
 
+    const handleOpenEditDialog = (
+        student: Student
+    ) => {
+        setSelectedStudent(student);
+        setEditDialogOpen(true);
+    };
+
+    const handleCloseEditDialog = () => {
+        setSelectedStudent(null);
+        setEditDialogOpen(false);
+    };
+
     return (
         <Stack spacing={3}>
+
             <Box>
                 <Typography
                     variant="h4"
-                    sx={{ fontWeight: 700 }}
+                    sx={{
+                        fontWeight: 700,
+                    }}
                 >
                     Students
                 </Typography>
 
-                <Typography sx={{ color: 'text.secondary' }}>
+                <Typography
+                    sx={{
+                        color: 'text.secondary',
+                    }}
+                >
                     View and manage all registered students.
                 </Typography>
             </Box>
@@ -147,17 +179,7 @@ function StudentsPage() {
                                     <TableCell>Stop</TableCell>
                                     <TableCell>Status</TableCell>
                                     <TableCell align="center">
-                                        <Tooltip title="Edit Student">
-                                            <IconButton color="primary" size="small">
-                                                <Edit />
-                                            </IconButton>
-                                        </Tooltip>
-
-                                        <Tooltip title="Delete Student">
-                                            <IconButton color="error" size="small">
-                                                <Delete />
-                                            </IconButton>
-                                        </Tooltip>
+                                        Actions
                                     </TableCell>
                                 </TableRow>
                             </TableHead>
@@ -211,6 +233,29 @@ function StudentsPage() {
                                                 size="small"
                                             />
                                         </TableCell>
+
+                                        <TableCell align="center">
+                                            <Tooltip title="Edit Student">
+                                                <IconButton
+                                                    color="primary"
+                                                    size="small"
+                                                    onClick={() =>
+                                                        handleOpenEditDialog(student)
+                                                    }
+                                                >
+                                                    <Edit />
+                                                </IconButton>
+                                            </Tooltip>
+
+                                            <Tooltip title="Delete Student">
+                                                <IconButton
+                                                    color="error"
+                                                    size="small"
+                                                >
+                                                    <Delete />
+                                                </IconButton>
+                                            </Tooltip>
+                                        </TableCell>
                                     </TableRow>
                                 ))}
 
@@ -219,7 +264,9 @@ function StudentsPage() {
                                         <TableCell
                                             colSpan={9}
                                             align="center"
-                                            sx={{ py: 5 }}
+                                            sx={{
+                                                py: 5,
+                                            }}
                                         >
                                             No students found.
                                         </TableCell>
@@ -228,7 +275,6 @@ function StudentsPage() {
                             </TableBody>
                         </Table>
                     </TableContainer>
-
                     <TablePagination
                         component="div"
                         count={data?.totalElements ?? 0}
@@ -244,6 +290,12 @@ function StudentsPage() {
             <AddStudentDialog
                 open={addDialogOpen}
                 onClose={handleCloseAddDialog}
+            />
+
+            <EditStudentDialog
+                open={editDialogOpen}
+                student={selectedStudent}
+                onClose={handleCloseEditDialog}
             />
         </Stack>
     );
