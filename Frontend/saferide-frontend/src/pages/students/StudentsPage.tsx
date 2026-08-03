@@ -26,6 +26,7 @@ import {
 
 import AddStudentDialog from '../../components/students/AddStudentDialog';
 import EditStudentDialog from '../../components/students/EditStudentDialog';
+import DeleteStudentDialog from '../../components/students/DeleteStudentDialog';
 import StudentToolbar from '../../components/students/StudentToolbar';
 
 import useStudents from '../../hooks/useStudents';
@@ -44,7 +45,13 @@ function StudentsPage() {
     const [editDialogOpen, setEditDialogOpen] =
         useState(false);
 
+    const [deleteDialogOpen, setDeleteDialogOpen] =
+        useState(false);
+
     const [selectedStudent, setSelectedStudent] =
+        useState<Student | null>(null);
+
+    const [studentToDelete, setStudentToDelete] =
         useState<Student | null>(null);
 
     const {
@@ -98,6 +105,18 @@ function StudentsPage() {
     const handleCloseEditDialog = () => {
         setSelectedStudent(null);
         setEditDialogOpen(false);
+    };
+
+    const handleOpenDeleteDialog = (
+        student: Student
+    ) => {
+        setStudentToDelete(student);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleCloseDeleteDialog = () => {
+        setStudentToDelete(null);
+        setDeleteDialogOpen(false);
     };
 
     return (
@@ -251,6 +270,9 @@ function StudentsPage() {
                                                 <IconButton
                                                     color="error"
                                                     size="small"
+                                                    onClick={() =>
+                                                        handleOpenDeleteDialog(student)
+                                                    }
                                                 >
                                                     <Delete />
                                                 </IconButton>
@@ -275,30 +297,43 @@ function StudentsPage() {
                             </TableBody>
                         </Table>
                     </TableContainer>
+
                     <TablePagination
                         component="div"
                         count={data?.totalElements ?? 0}
                         page={page}
                         rowsPerPage={rowsPerPage}
                         onPageChange={handlePageChange}
-                        onRowsPerPageChange={handleRowsPerPageChange}
-                        rowsPerPageOptions={[5, 10, 25, 50]}
+                        onRowsPerPageChange={
+                            handleRowsPerPageChange
+                        }
+                        rowsPerPageOptions={[
+                            5,
+                            10,
+                            25,
+                            50,
+                        ]}
                     />
                 </Paper>
-            )}
-
-            <AddStudentDialog
-                open={addDialogOpen}
-                onClose={handleCloseAddDialog}
-            />
+                )}            <AddStudentDialog
+            open={addDialogOpen}
+            onClose={handleCloseAddDialog}
+        />
 
             <EditStudentDialog
                 open={editDialogOpen}
                 student={selectedStudent}
                 onClose={handleCloseEditDialog}
             />
+
+            <DeleteStudentDialog
+                open={deleteDialogOpen}
+                student={studentToDelete}
+                onClose={handleCloseDeleteDialog}
+            />
         </Stack>
     );
 }
+
 
 export default StudentsPage;
