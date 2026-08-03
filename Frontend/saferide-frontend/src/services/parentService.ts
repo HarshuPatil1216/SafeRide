@@ -90,6 +90,18 @@ export async function getParents(
     return response.data;
 }
 
+export async function getParentById(
+    id: number
+): Promise<Parent> {
+
+    const response =
+        await parentApi.get<Parent>(
+            `/${id}`
+        );
+
+    return response.data;
+}
+
 export async function createParent(
     payload: CreateParentRequest
 ): Promise<Parent> {
@@ -98,18 +110,6 @@ export async function createParent(
         await parentApi.post<Parent>(
             '',
             payload
-        );
-
-    return response.data;
-}
-
-export async function getParentById(
-    id: number
-): Promise<Parent> {
-
-    const response =
-        await parentApi.get<Parent>(
-            `/${id}`
         );
 
     return response.data;
