@@ -11,12 +11,10 @@ import {
     TextField,
 } from '@mui/material';
 
-import useUpdateStudent from '../../hooks/useUpdateStudent';
-import type { Student } from '../../services/studentService';
+import useCreateStudent from '../../hooks/useCreateStudent';
 
-type EditStudentDialogProps = {
+type AddStudentDialogProps = {
     open: boolean;
-    student: Student | null;
     onClose: () => void;
 };
 
@@ -42,39 +40,26 @@ const initialFormState: StudentFormState = {
     address: '',
 };
 
-function EditStudentDialog({
-                               open,
-                               student,
-                               onClose,
-                           }: EditStudentDialogProps) {
+function AddStudentDialog({
+                              open,
+                              onClose,
+                          }: AddStudentDialogProps) {
 
-    const updateStudentMutation = useUpdateStudent();
+    const createStudentMutation = useCreateStudent();
 
     const [form, setForm] =
         useState<StudentFormState>(initialFormState);
 
     const [validationError, setValidationError] =
         useState('');
+
     useEffect(() => {
         if (!open) {
-            return;
-        }
-
-        if (student) {
-            setForm({
-                fullName: student.fullName,
-                rollNumber: student.rollNumber,
-                standard: student.standard,
-                division: student.division,
-                parentId: String(student.parentId),
-                routeId: student.routeId ? String(student.routeId) : '',
-                stopId: student.stopId ? String(student.stopId) : '',
-                address: student.address,
-            });
-
+            setForm(initialFormState);
             setValidationError('');
+            createStudentMutation.reset();
         }
-    }, [open, student]);
+    }, [open, createStudentMutation]);
 
     const handleFieldChange = (
         field: keyof StudentFormState,
@@ -87,10 +72,19 @@ function EditStudentDialog({
 
         setValidationError('');
     };
-    const handleSubmit = () => {
-        if (!student) {
+
+    const handleClose = () => {
+        if (createStudentMutation.isPending) {
             return;
         }
+
+        setForm(initialFormState);
+        setValidationError('');
+        createStudentMutation.reset();
+        onClose();
+    };
+
+    const handleSubmit = () => {
 
         if (
             !form.fullName.trim() ||
@@ -110,6 +104,7 @@ function EditStudentDialog({
         const routeId = form.routeId
             ? Number(form.routeId)
             : null;
+
         const stopId = form.stopId
             ? Number(form.stopId)
             : null;
@@ -124,24 +119,21 @@ function EditStudentDialog({
             return;
         }
 
-        updateStudentMutation.mutate(
+        createStudentMutation.mutate(
             {
-                id: student.id,
-                payload: {
-                    fullName: form.fullName.trim(),
-                    rollNumber: form.rollNumber.trim(),
-                    standard: form.standard.trim(),
-                    division: form.division.trim(),
-                    parentId,
-                    routeId,
-                    stopId,
-                    address: form.address.trim(),
-                    active: student.active,
-                },
+                fullName: form.fullName.trim(),
+                rollNumber: form.rollNumber.trim(),
+                standard: form.standard.trim(),
+                division: form.division.trim(),
+                parentId,
+                routeId,
+                stopId,
+                address: form.address.trim(),
+                active: true,
             },
             {
                 onSuccess: () => {
-                    onClose();
+                    handleClose();
                 },
             }
         );
@@ -150,11 +142,13 @@ function EditStudentDialog({
     return (
         <Dialog
             open={open}
-            onClose={onClose}
+            onClose={handleClose}
             fullWidth
             maxWidth="md"
         >
-            <DialogTitle>Edit Student</DialogTitle>
+            <DialogTitle>
+                Add Student
+            </DialogTitle>
 
             <DialogContent>
 
@@ -167,13 +161,13 @@ function EditStudentDialog({
                     </Alert>
                 )}
 
-                {updateStudentMutation.isError && (
+                {createStudentMutation.isError && (
                     <Alert
                         severity="error"
                         sx={{ mt: 2, mb: 2 }}
                     >
-                        {updateStudentMutation.error.message ||
-                            'Failed to update student.'}
+                        {createStudentMutation.error.message ??
+                            'Student could not be created.'}
                     </Alert>
                 )}
 
@@ -304,17 +298,17 @@ function EditStudentDialog({
                             }
                         />
                     </Grid>
+
                 </Grid>
 
             </DialogContent>
 
             <DialogActions>
+
                 <Button
                     color="inherit"
-                    onClick={onClose}
-                    disabled={
-                        updateStudentMutation.isPending
-                    }
+                    onClick={handleClose}
+                    disabled={createStudentMutation.isPending}
                 >
                     Cancel
                 </Button>
@@ -322,17 +316,17 @@ function EditStudentDialog({
                 <Button
                     variant="contained"
                     onClick={handleSubmit}
-                    disabled={
-                        updateStudentMutation.isPending
-                    }
+                    disabled={createStudentMutation.isPending}
                 >
-                    {updateStudentMutation.isPending
-                        ? 'Updating...'
-                        : 'Update Student'}
+                    {createStudentMutation.isPending
+                        ? 'Saving...'
+                        : 'Save Student'}
                 </Button>
+
             </DialogActions>
+
         </Dialog>
     );
 }
 
-export default EditStudentDialog;
+export default AddStudentDialog;
