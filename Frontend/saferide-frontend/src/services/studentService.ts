@@ -1,5 +1,5 @@
 import axios from 'axios';
-export type UpdateStudentRequest = CreateStudentRequest;
+
 export type Student = {
     id: number;
     fullName: string;
@@ -42,6 +42,20 @@ export type GetStudentsParams = {
     query?: string;
 };
 
+export type CreateStudentRequest = {
+    fullName: string;
+    rollNumber: string;
+    standard: string;
+    division: string;
+    parentId: number;
+    routeId?: number | null;
+    stopId?: number | null;
+    address: string;
+    active?: boolean;
+};
+
+export type UpdateStudentRequest = CreateStudentRequest;
+
 const studentApi = axios.create({
     baseURL: 'http://localhost:8081/api/students',
 });
@@ -59,6 +73,7 @@ studentApi.interceptors.request.use((config) => {
 export async function getStudents(
     params: GetStudentsParams
 ): Promise<PageResponse<Student>> {
+
     const {
         page = 0,
         size = 10,
@@ -69,53 +84,63 @@ export async function getStudents(
 
     const endpoint = query.trim() ? '/search' : '';
 
-    const response = await studentApi.get<PageResponse<Student>>(endpoint, {
-        params: {
-            ...(query.trim() ? { query: query.trim() } : {}),
-            page,
-            size,
-            sortBy,
-            sortDir,
-        },
-    });
+    const response = await studentApi.get<PageResponse<Student>>(
+        endpoint,
+        {
+            params: {
+                ...(query.trim()
+                    ? { query: query.trim() }
+                    : {}),
+                page,
+                size,
+                sortBy,
+                sortDir,
+            },
+        }
+    );
 
     return response.data;
 }
-export type CreateStudentRequest = {
-    fullName: string;
-    rollNumber: string;
-    standard: string;
-    division: string;
-    parentId: number;
-    routeId?: number | null;
-    stopId?: number | null;
-    address: string;
-    active?: boolean;
-};
 
 export async function createStudent(
     payload: CreateStudentRequest
 ): Promise<Student> {
-    const response = await studentApi.post<Student>('', payload);
+
+    const response = await studentApi.post<Student>(
+        '',
+        payload
+    );
+
     return response.data;
 }
+
 export async function getStudentById(
     id: number
 ): Promise<Student> {
-    const response = await studentApi.get<Student>(`/${id}`);
+
+    const response = await studentApi.get<Student>(
+        `/${id}`
+    );
+
     return response.data;
 }
 
 export async function updateStudent(
     id: number,
-    payload: CreateStudentRequest
+    payload: UpdateStudentRequest
 ): Promise<Student> {
-    const response = await studentApi.put<Student>(`/${id}`, payload);
+
+    const response = await studentApi.put<Student>(
+        `/${id}`,
+        payload
+    );
+
     return response.data;
 }
 
 export async function deleteStudent(
     id: number
 ): Promise<void> {
+
     await studentApi.delete(`/${id}`);
 }
