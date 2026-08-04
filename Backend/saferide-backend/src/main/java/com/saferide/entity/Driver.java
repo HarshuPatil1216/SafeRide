@@ -31,21 +31,37 @@ public class Driver {
     @Column(nullable = false, unique = true)
     private String licenseNumber;
 
+    @Column(nullable = false)
     private Integer experience;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vehicle_id")
+    private Vehicle vehicle;
+
+    @Column(nullable = false)
+    private String address;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private DriverStatus status;
+
+    @Column(nullable = false)
+    private Boolean active = true;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
     public void onCreate() {
+
         createdAt = LocalDateTime.now();
 
         if (status == null) {
             status = DriverStatus.ACTIVE;
+        }
+
+        if (active == null) {
+            active = true;
         }
     }
 }

@@ -27,5 +27,13 @@ public class CreateDriverRequest {
     @Min(value = 0, message = "Experience cannot be negative")
     private Integer experience;
 
+    @NotNull(message = "Vehicle ID is required")
+    private Long vehicleId;
+
+    @NotBlank(message = "Address is required")
+    private String address;
+
     private DriverStatus status;
+
+    private Boolean active = true;
 }
