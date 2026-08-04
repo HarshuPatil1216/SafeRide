@@ -7,6 +7,7 @@ import DashboardPage from './pages/dashboard/DashboardPage';
 
 import StudentsPage from './pages/students/StudentsPage';
 import ParentsPage from './pages/parents/ParentsPage';
+import DriversPage from './pages/drivers/DriversPage';
 
 import ProtectedRoute from './routes/ProtectedRoute';
 
@@ -46,6 +47,11 @@ function App() {
                     <Route
                         path="/parents"
                         element={<ParentsPage />}
+                    />
+
+                    <Route
+                        path="/drivers"
+                        element={<DriversPage />}
                     />
 
                 </Route>

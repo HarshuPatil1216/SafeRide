@@ -3,14 +3,20 @@ import axios from 'axios';
 export type Driver = {
     id: number;
     fullName: string;
-    phoneNumber: string;
+    email: string;
+    phone: string;
     licenseNumber: string;
+    experience: number;
 
     vehicleId: number | null;
     vehicleNumber: string | null;
 
     address: string;
+
+    status: 'ACTIVE' | 'INACTIVE';
+
     active: boolean;
+
     createdAt: string;
 };
 
@@ -36,15 +42,21 @@ export type GetDriversParams = {
 
 export type CreateDriverRequest = {
     fullName: string;
-    phoneNumber: string;
+    email: string;
+    phone: string;
     licenseNumber: string;
-    vehicleId?: number | null;
+    experience: number;
+
+    vehicleId: number;
+
     address: string;
+
+    status: 'ACTIVE' | 'INACTIVE';
+
     active?: boolean;
 };
 
-export type UpdateDriverRequest =
-    CreateDriverRequest;
+export type UpdateDriverRequest = CreateDriverRequest;
 
 const driverApi = axios.create({
     baseURL: 'http://localhost:8081/api/drivers',
@@ -55,8 +67,7 @@ driverApi.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
 
     if (token) {
-        config.headers.Authorization =
-            `Bearer ${token}`;
+        config.headers.Authorization = `Bearer ${token}`;
     }
 
     return config;
@@ -74,26 +85,22 @@ export async function getDrivers(
         query = '',
     } = params;
 
-    const endpoint =
-        query.trim()
-            ? '/search'
-            : '';
+    const endpoint = query.trim() ? '/search' : '';
 
-    const response =
-        await driverApi.get<PageResponse<Driver>>(
-            endpoint,
-            {
-                params: {
-                    ...(query.trim()
-                        ? { query: query.trim() }
-                        : {}),
-                    page,
-                    size,
-                    sortBy,
-                    sortDir,
-                },
-            }
-        );
+    const response = await driverApi.get<PageResponse<Driver>>(
+        endpoint,
+        {
+            params: {
+                ...(query.trim()
+                    ? { query: query.trim() }
+                    : {}),
+                page,
+                size,
+                sortBy,
+                sortDir,
+            },
+        }
+    );
 
     return response.data;
 }
@@ -102,11 +109,10 @@ export async function createDriver(
     payload: CreateDriverRequest
 ): Promise<Driver> {
 
-    const response =
-        await driverApi.post<Driver>(
-            '',
-            payload
-        );
+    const response = await driverApi.post<Driver>(
+        '',
+        payload
+    );
 
     return response.data;
 }
@@ -115,10 +121,9 @@ export async function getDriverById(
     id: number
 ): Promise<Driver> {
 
-    const response =
-        await driverApi.get<Driver>(
-            `/${id}`
-        );
+    const response = await driverApi.get<Driver>(
+        `/${id}`
+    );
 
     return response.data;
 }
@@ -128,11 +133,10 @@ export async function updateDriver(
     payload: UpdateDriverRequest
 ): Promise<Driver> {
 
-    const response =
-        await driverApi.put<Driver>(
-            `/${id}`,
-            payload
-        );
+    const response = await driverApi.put<Driver>(
+        `/${id}`,
+        payload
+    );
 
     return response.data;
 }
@@ -141,7 +145,5 @@ export async function deleteDriver(
     id: number
 ): Promise<void> {
 
-    await driverApi.delete(
-        `/${id}`
-    );
+    await driverApi.delete(`/${id}`);
 }
