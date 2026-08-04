@@ -321,3 +321,44 @@ function ParentsPage() {
                         </Table>
 
                     </TableContainer>
+                    <TablePagination
+                        component="div"
+                        count={data?.totalElements ?? 0}
+                        page={page}
+                        rowsPerPage={rowsPerPage}
+                        onPageChange={handlePageChange}
+                        onRowsPerPageChange={
+                            handleRowsPerPageChange
+                        }
+                        rowsPerPageOptions={[
+                            5,
+                            10,
+                            25,
+                            50,
+                        ]}
+                    />
+                </Paper>
+            )}
+
+            <AddParentDialog
+                open={addDialogOpen}
+                onClose={handleCloseAddDialog}
+            />
+
+            <EditParentDialog
+                open={editDialogOpen}
+                parent={selectedParent}
+                onClose={handleCloseEditDialog}
+            />
+
+            <DeleteParentDialog
+                open={deleteDialogOpen}
+                parent={parentToDelete}
+                onClose={handleCloseDeleteDialog}
+            />
+
+        </Stack>
+    );
+}
+
+export default ParentsPage;
