@@ -1,8 +1,8 @@
 import { useState, type ChangeEvent } from 'react';
 
 import {
-    Edit,
     Delete,
+    Edit,
 } from '@mui/icons-material';
 
 import {
@@ -24,10 +24,10 @@ import {
     Typography,
 } from '@mui/material';
 
-import DriverToolbar from '../../components/drivers/DriverToolbar';
 import AddDriverDialog from '../../components/drivers/AddDriverDialog';
-import EditDriverDialog from '../../components/drivers/EditDriverDialog';
 import DeleteDriverDialog from '../../components/drivers/DeleteDriverDialog';
+import DriverToolbar from '../../components/drivers/DriverToolbar';
+import EditDriverDialog from '../../components/drivers/EditDriverDialog';
 
 import useDrivers from '../../hooks/useDrivers';
 
@@ -37,8 +37,7 @@ import type {
 
 function DriversPage() {
 
-    const [page, setPage] =
-        useState(0);
+    const [page, setPage] = useState(0);
 
     const [rowsPerPage, setRowsPerPage] =
         useState(10);
@@ -83,16 +82,20 @@ function DriversPage() {
     const handleRowsPerPageChange = (
         event: ChangeEvent<HTMLInputElement>
     ) => {
+
         setRowsPerPage(
             Number(event.target.value)
         );
+
         setPage(0);
     };
 
     const handleSearchChange = (
         value: string
     ) => {
+
         setSearch(value);
+
         setPage(0);
     };
 
@@ -107,46 +110,51 @@ function DriversPage() {
     const handleOpenEditDialog = (
         driver: Driver
     ) => {
+
         setSelectedDriver(driver);
+
         setEditDialogOpen(true);
     };
 
     const handleCloseEditDialog = () => {
+
         setSelectedDriver(null);
+
         setEditDialogOpen(false);
     };
 
     const handleOpenDeleteDialog = (
         driver: Driver
     ) => {
+
         setDriverToDelete(driver);
+
         setDeleteDialogOpen(true);
     };
 
     const handleCloseDeleteDialog = () => {
+
         setDriverToDelete(null);
+
         setDeleteDialogOpen(false);
-    };
-    return (
+    };return (
         <Stack spacing={3}>
 
             <Box>
+
                 <Typography
                     variant="h4"
-                    sx={{
-                        fontWeight: 700,
-                    }}
+                    sx={{ fontWeight: 700 }}
                 >
                     Drivers
                 </Typography>
 
                 <Typography
-                    sx={{
-                        color: 'text.secondary',
-                    }}
+                    sx={{ color: 'text.secondary' }}
                 >
                     View and manage all registered drivers.
                 </Typography>
+
             </Box>
 
             <Paper
@@ -158,14 +166,17 @@ function DriversPage() {
                     borderRadius: 3,
                 }}
             >
+
                 <DriverToolbar
                     search={search}
                     onSearchChange={handleSearchChange}
                     onAddClick={handleOpenAddDialog}
                 />
+
             </Paper>
 
             {isLoading && (
+
                 <Box
                     sx={{
                         display: 'flex',
@@ -175,15 +186,19 @@ function DriversPage() {
                 >
                     <CircularProgress />
                 </Box>
+
             )}
 
             {isError && (
+
                 <Alert severity="error">
                     Failed to load drivers.
                 </Alert>
+
             )}
 
             {!isLoading && !isError && (
+
                 <Paper
                     elevation={0}
                     sx={{
@@ -193,20 +208,37 @@ function DriversPage() {
                         overflow: 'hidden',
                     }}
                 >
+
                     <TableContainer>
+
                         <Table>
+
                             <TableHead>
+
                                 <TableRow>
+
                                     <TableCell>ID</TableCell>
+
                                     <TableCell>Name</TableCell>
+
+                                    <TableCell>Email</TableCell>
+
                                     <TableCell>Phone</TableCell>
-                                    <TableCell>License</TableCell>
+
+                                    <TableCell>Experience</TableCell>
+
                                     <TableCell>Vehicle</TableCell>
+
                                     <TableCell>Status</TableCell>
+
+                                    <TableCell>Active</TableCell>
+
                                     <TableCell align="center">
                                         Actions
                                     </TableCell>
+
                                 </TableRow>
+
                             </TableHead>
 
                             <TableBody>
@@ -217,6 +249,7 @@ function DriversPage() {
                                         key={driver.id}
                                         hover
                                     >
+
                                         <TableCell>
                                             {driver.id}
                                         </TableCell>
@@ -226,15 +259,33 @@ function DriversPage() {
                                         </TableCell>
 
                                         <TableCell>
-                                            {driver.phoneNumber}
+                                            {driver.email}
                                         </TableCell>
 
                                         <TableCell>
-                                            {driver.licenseNumber}
+                                            {driver.phone}
+                                        </TableCell>
+
+                                        <TableCell>
+                                            {driver.experience} Years
                                         </TableCell>
 
                                         <TableCell>
                                             {driver.vehicleNumber ?? '-'}
+                                        </TableCell>
+
+                                        <TableCell>
+
+                                            <Chip
+                                                label={driver.status}
+                                                color={
+                                                    driver.status === 'ACTIVE'
+                                                        ? 'success'
+                                                        : 'warning'
+                                                }
+                                                size="small"
+                                            />
+
                                         </TableCell>
 
                                         <TableCell>
@@ -247,7 +298,7 @@ function DriversPage() {
                                                 }
                                                 color={
                                                     driver.active
-                                                        ? 'success'
+                                                        ? 'primary'
                                                         : 'default'
                                                 }
                                                 size="small"
@@ -296,11 +347,9 @@ function DriversPage() {
                                     <TableRow>
 
                                         <TableCell
-                                            colSpan={7}
+                                            colSpan={9}
                                             align="center"
-                                            sx={{
-                                                py: 5,
-                                            }}
+                                            sx={{ py: 5 }}
                                         >
                                             No drivers found.
                                         </TableCell>
@@ -314,27 +363,20 @@ function DriversPage() {
                         </Table>
 
                     </TableContainer>
+
                     <TablePagination
                         component="div"
                         count={data?.totalElements ?? 0}
                         page={page}
                         rowsPerPage={rowsPerPage}
                         onPageChange={handlePageChange}
-                        onRowsPerPageChange={
-                            handleRowsPerPageChange
-                        }
-                        rowsPerPageOptions={[
-                            5,
-                            10,
-                            25,
-                            50,
-                        ]}
+                        onRowsPerPageChange={handleRowsPerPageChange}
+                        rowsPerPageOptions={[5, 10, 25, 50]}
                     />
 
                 </Paper>
 
             )}
-
             <AddDriverDialog
                 open={addDialogOpen}
                 onClose={handleCloseAddDialog}
@@ -354,6 +396,7 @@ function DriversPage() {
 
         </Stack>
     );
+
 }
 
 export default DriversPage;
