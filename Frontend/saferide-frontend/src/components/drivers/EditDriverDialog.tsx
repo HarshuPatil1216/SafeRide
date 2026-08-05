@@ -8,14 +8,13 @@ import {
     DialogContent,
     DialogTitle,
     Grid,
+    MenuItem,
     TextField,
 } from '@mui/material';
 
 import useUpdateDriver from '../../hooks/useUpdateDriver';
 
-import type {
-    Driver,
-} from '../../services/driverService';
+import type { Driver } from '../../services/driverService';
 
 type EditDriverDialogProps = {
     open: boolean;
@@ -25,18 +24,24 @@ type EditDriverDialogProps = {
 
 type DriverFormState = {
     fullName: string;
-    phoneNumber: string;
+    email: string;
+    phone: string;
     licenseNumber: string;
+    experience: string;
     vehicleId: string;
     address: string;
+    status: 'ACTIVE' | 'INACTIVE';
 };
 
 const initialFormState: DriverFormState = {
     fullName: '',
-    phoneNumber: '',
+    email: '',
+    phone: '',
     licenseNumber: '',
+    experience: '',
     vehicleId: '',
     address: '',
+    status: 'ACTIVE',
 };
 
 function EditDriverDialog({
@@ -58,24 +63,24 @@ function EditDriverDialog({
 
     useEffect(() => {
 
-        if (!open) {
+        if (!open || !driver) {
             return;
         }
 
-        if (driver) {
+        setForm({
+            fullName: driver.fullName,
+            email: driver.email,
+            phone: driver.phone,
+            licenseNumber: driver.licenseNumber,
+            experience: String(driver.experience),
+            vehicleId: driver.vehicleId
+                ? String(driver.vehicleId)
+                : '',
+            address: driver.address,
+            status: driver.status,
+        });
 
-            setForm({
-                fullName: driver.fullName,
-                phoneNumber: driver.phoneNumber,
-                licenseNumber: driver.licenseNumber,
-                vehicleId: driver.vehicleId
-                    ? String(driver.vehicleId)
-                    : '',
-                address: driver.address,
-            });
-
-            setValidationError('');
-        }
+        setValidationError('');
 
     }, [open, driver]);
 
@@ -91,7 +96,6 @@ function EditDriverDialog({
 
         setValidationError('');
     };
-
     const handleSubmit = () => {
 
         if (!driver) {
@@ -100,8 +104,11 @@ function EditDriverDialog({
 
         if (
             !form.fullName.trim() ||
-            !form.phoneNumber.trim() ||
+            !form.email.trim() ||
+            !form.phone.trim() ||
             !form.licenseNumber.trim() ||
+            !form.experience.trim() ||
+            !form.vehicleId.trim() ||
             !form.address.trim()
         ) {
             setValidationError(
@@ -110,20 +117,18 @@ function EditDriverDialog({
             return;
         }
 
-        const vehicleId =
-            form.vehicleId.trim()
-                ? Number(form.vehicleId)
-                : null;
-
         updateDriverMutation.mutate(
             {
                 id: driver.id,
                 payload: {
                     fullName: form.fullName.trim(),
-                    phoneNumber: form.phoneNumber.trim(),
+                    email: form.email.trim(),
+                    phone: form.phone.trim(),
                     licenseNumber: form.licenseNumber.trim(),
-                    vehicleId,
+                    experience: Number(form.experience),
+                    vehicleId: Number(form.vehicleId),
                     address: form.address.trim(),
+                    status: form.status,
                     active: driver.active,
                 },
             },
@@ -134,7 +139,6 @@ function EditDriverDialog({
             }
         );
     };
-
     return (
         <Dialog
             open={open}
@@ -162,8 +166,7 @@ function EditDriverDialog({
                         severity="error"
                         sx={{ mt: 2, mb: 2 }}
                     >
-                        {updateDriverMutation.error.message ||
-                            'Failed to update driver.'}
+                        Failed to update driver.
                     </Alert>
                 )}
 
@@ -192,11 +195,27 @@ function EditDriverDialog({
                         <TextField
                             fullWidth
                             required
-                            label="Phone Number"
-                            value={form.phoneNumber}
+                            type="email"
+                            label="Email"
+                            value={form.email}
                             onChange={(e) =>
                                 handleFieldChange(
-                                    'phoneNumber',
+                                    'email',
+                                    e.target.value
+                                )
+                            }
+                        />
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <TextField
+                            fullWidth
+                            required
+                            label="Phone"
+                            value={form.phone}
+                            onChange={(e) =>
+                                handleFieldChange(
+                                    'phone',
                                     e.target.value
                                 )
                             }
@@ -221,6 +240,23 @@ function EditDriverDialog({
                     <Grid size={{ xs: 12, md: 6 }}>
                         <TextField
                             fullWidth
+                            required
+                            type="number"
+                            label="Experience (Years)"
+                            value={form.experience}
+                            onChange={(e) =>
+                                handleFieldChange(
+                                    'experience',
+                                    e.target.value
+                                )
+                            }
+                        />
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <TextField
+                            fullWidth
+                            required
                             type="number"
                             label="Vehicle ID"
                             value={form.vehicleId}
@@ -231,6 +267,29 @@ function EditDriverDialog({
                                 )
                             }
                         />
+                    </Grid>
+
+                    <Grid size={{ xs: 12, md: 6 }}>
+                        <TextField
+                            fullWidth
+                            select
+                            label="Status"
+                            value={form.status}
+                            onChange={(e) =>
+                                handleFieldChange(
+                                    'status',
+                                    e.target.value as 'ACTIVE' | 'INACTIVE'
+                                )
+                            }
+                        >
+                            <MenuItem value="ACTIVE">
+                                ACTIVE
+                            </MenuItem>
+
+                            <MenuItem value="INACTIVE">
+                                INACTIVE
+                            </MenuItem>
+                        </TextField>
                     </Grid>
 
                     <Grid size={{ xs: 12 }}>
@@ -259,9 +318,7 @@ function EditDriverDialog({
                 <Button
                     color="inherit"
                     onClick={onClose}
-                    disabled={
-                        updateDriverMutation.isPending
-                    }
+                    disabled={updateDriverMutation.isPending}
                 >
                     Cancel
                 </Button>
@@ -269,9 +326,7 @@ function EditDriverDialog({
                 <Button
                     variant="contained"
                     onClick={handleSubmit}
-                    disabled={
-                        updateDriverMutation.isPending
-                    }
+                    disabled={updateDriverMutation.isPending}
                 >
                     {updateDriverMutation.isPending
                         ? 'Updating...'
@@ -282,6 +337,7 @@ function EditDriverDialog({
 
         </Dialog>
     );
+
 }
 
 export default EditDriverDialog;
