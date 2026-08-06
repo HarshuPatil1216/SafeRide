@@ -19,6 +19,10 @@ function useVehicles(
         queryFn: () =>
             getVehicles(params),
 
+        placeholderData: (
+            previousData
+        ) => previousData,
+
     });
 
 }
