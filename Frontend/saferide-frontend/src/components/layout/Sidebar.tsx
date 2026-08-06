@@ -1,4 +1,5 @@
 import {
+    Assessment,
     Dashboard,
     DirectionsBus,
     LocationOn,
@@ -7,8 +8,8 @@ import {
     Person,
     Route,
     School,
-    Assessment,
 } from '@mui/icons-material';
+
 import {
     Box,
     List,
@@ -17,6 +18,7 @@ import {
     ListItemText,
     Typography,
 } from '@mui/material';
+
 import { NavLink } from 'react-router-dom';
 
 const menuItems = [
@@ -81,7 +83,9 @@ function Sidebar() {
                 minHeight: '100vh',
                 borderRight: '1px solid',
                 borderColor: 'divider',
-                backgroundColor: 'background.paper',
+                bgcolor: 'background.paper',
+                display: 'flex',
+                flexDirection: 'column',
             }}
         >
             <Box
@@ -93,16 +97,6 @@ function Sidebar() {
                 }}
             >
                 <Typography
-                    variant="h5"
-                    sx={{
-                        fontWeight: 700,
-                        color: 'primary.main',
-                    }}
-                >
-                    SafeRide
-                </Typography>
-
-                <Typography
                     variant="body2"
                     sx={{
                         color: 'text.secondary',
@@ -110,9 +104,22 @@ function Sidebar() {
                 >
                     Admin Panel
                 </Typography>
+
+                <Typography
+                    variant="body2"
+                    color="text.secondary"
+                >
+                    Admin Panel
+                </Typography>
             </Box>
 
-            <List sx={{ px: 2, py: 2 }}>
+            <List
+                sx={{
+                    px: 2,
+                    py: 2,
+                    flexGrow: 1,
+                }}
+            >
                 {menuItems.map((item) => (
                     <ListItemButton
                         key={item.path}
@@ -122,12 +129,18 @@ function Sidebar() {
                             mb: 0.5,
                             borderRadius: 2,
                             color: 'text.secondary',
+
                             '&.active': {
-                                backgroundColor: 'primary.main',
+                                bgcolor: 'primary.main',
                                 color: 'primary.contrastText',
+
                                 '& .MuiListItemIcon-root': {
                                     color: 'primary.contrastText',
                                 },
+                            },
+
+                            '&:hover': {
+                                bgcolor: 'action.hover',
                             },
                         }}
                     >
@@ -140,7 +153,9 @@ function Sidebar() {
                             {item.icon}
                         </ListItemIcon>
 
-                        <ListItemText primary={item.label} />
+                        <ListItemText
+                            primary={item.label}
+                        />
                     </ListItemButton>
                 ))}
             </List>
