@@ -1,0 +1,6 @@
+{
+  "name": "SafeRide - School Transportation Management System",
+  "description": "Production-grade frontend for SafeRide School Transportation Management System with JWT authentication, role-based Admin, Driver, and Parent portals, live map tracking, and full REST API services.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

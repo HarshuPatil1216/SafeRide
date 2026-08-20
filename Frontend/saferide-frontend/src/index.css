@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background-color: #050505;
+    color: #e2e8f0;
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  }
+
+  /* Form controls dark mode baseline */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+  select,
+  textarea {
+    background-color: #050505;
+    border-color: #1e293b;
+    color: #f8fafc;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"])::placeholder,
+  textarea::placeholder {
+    color: #64748b;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):focus,
+  select:focus,
+  textarea:focus {
+    border-color: #38bdf8;
+    outline: none;
+    box-shadow: 0 0 0 1px #38bdf8;
+  }
+}
+
+/* Custom dark scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Leaflet map container styling */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 0.75rem;
+  z-index: 1;
+  background-color: #050505;
+}
+
+.custom-bus-marker, .custom-stop-marker, .custom-student-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
