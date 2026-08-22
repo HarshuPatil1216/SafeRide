@@ -23,123 +23,170 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthenticationFilter
+    ) {
+
+        this.jwtAuthenticationFilter =
+                jwtAuthenticationFilter;
     }
 
+
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http)
-            throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http
+    ) throws Exception {
+
 
         http
-                // Disable CSRF because this is a stateless JWT-based REST API
-                .csrf(AbstractHttpConfigurer::disable)
 
-                // Enable CORS
-                .cors(cors ->
-                        cors.configurationSource(corsConfigurationSource())
+                // ==================================
+                // CSRF
+                // ==================================
+
+                .csrf(
+                        AbstractHttpConfigurer::disable
                 )
 
-                // JWT authentication is stateless
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(
-                                SessionCreationPolicy.STATELESS
-                        )
+
+                // ==================================
+                // CORS
+                // ==================================
+
+                .cors(
+                        cors ->
+                                cors.configurationSource(
+                                        corsConfigurationSource()
+                                )
                 )
 
-                // Authorization rules
-                .authorizeHttpRequests(auth -> auth
 
-                        // Public endpoints
-                        .requestMatchers(
-                                "/api/health",
-                                "/api/auth/register",
-                                "/api/auth/login",
+                // ==================================
+                // STATELESS JWT
+                // ==================================
 
-                                // Swagger
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/v3/api-docs/**",
-                                "/v3/api-docs"
-                        ).permitAll()
-
-                        // Allow CORS preflight requests
-                        .requestMatchers(
-                                HttpMethod.OPTIONS,
-                                "/**"
-                        ).permitAll()
-
-                        // Admin-only ride creation
-                        .requestMatchers(
-                                HttpMethod.POST,
-                                "/api/rides"
-                        ).hasAuthority("ROLE_ADMIN")
-
-                        // Everything else requires authentication
-                        .anyRequest().authenticated()
+                .sessionManagement(
+                        session ->
+                                session.sessionCreationPolicy(
+                                        SessionCreationPolicy.STATELESS
+                                )
                 )
 
-                // JWT filter
+
+                // ==================================
+                // AUTHORIZATION
+                // ==================================
+
+                .authorizeHttpRequests(
+                        auth -> auth
+
+                                // Public APIs
+                                .requestMatchers(
+                                        "/api/health",
+                                        "/api/auth/login",
+                                        "/api/auth/register",
+
+                                        // Swagger
+                                        "/swagger-ui/**",
+                                        "/swagger-ui.html",
+                                        "/v3/api-docs/**",
+                                        "/v3/api-docs"
+                                )
+                                .permitAll()
+
+
+                                // CORS preflight
+                                .requestMatchers(
+                                        HttpMethod.OPTIONS,
+                                        "/**"
+                                )
+                                .permitAll()
+
+
+                                // All other APIs
+                                .anyRequest()
+                                .authenticated()
+                )
+
+
+                // ==================================
+                // JWT FILTER
+                // ==================================
+
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class
                 );
 
+
         return http.build();
     }
 
-    /**
-     * CORS configuration
-     *
-     * Frontend:
-     * http://localhost:3000
-     *
-     * Backend:
-     * http://localhost:8081
-     */
+
+    // ==========================================
+    // CORS CONFIGURATION
+    // ==========================================
+
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    public CorsConfigurationSource
+    corsConfigurationSource() {
 
-        CorsConfiguration configuration = new CorsConfiguration();
+        CorsConfiguration configuration =
+                new CorsConfiguration();
 
-        // React/Vite frontend URL
-        configuration.setAllowedOrigins(List.of(
-                "http://localhost:3000"
-        ));
 
-        // Allowed HTTP methods
-        configuration.setAllowedMethods(List.of(
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE",
-                "PATCH",
-                "OPTIONS"
-        ));
+        configuration.setAllowedOrigins(
+                List.of(
+                        "http://localhost:3000",
+                        "http://127.0.0.1:3000"
+                )
+        );
 
-        // Allow all request headers
-        configuration.setAllowedHeaders(List.of("*"));
 
-        // Allow cookies/authorization credentials
-        configuration.setAllowCredentials(true);
+        configuration.setAllowedMethods(
+                List.of(
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "DELETE",
+                        "PATCH",
+                        "OPTIONS"
+                )
+        );
+
+
+        configuration.setAllowedHeaders(
+                List.of("*")
+        );
+
+
+        configuration.setAllowCredentials(
+                true
+        );
+
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
 
-        // Apply CORS configuration to all API endpoints
+
         source.registerCorsConfiguration(
                 "/**",
                 configuration
         );
 
+
         return source;
     }
 
-    /**
-     * Password encoder used for BCrypt password hashing.
-     */
+
+    // ==========================================
+    // PASSWORD ENCODER
+    // ==========================================
+
     @Bean
     public PasswordEncoder passwordEncoder() {
+
         return new BCryptPasswordEncoder();
     }
 }

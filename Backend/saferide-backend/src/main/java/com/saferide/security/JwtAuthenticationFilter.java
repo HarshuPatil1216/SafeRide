@@ -16,84 +16,221 @@ import java.io.IOException;
 import java.util.List;
 
 @Component
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+public class JwtAuthenticationFilter
+        extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+
     private final UserRepository userRepository;
+
 
     public JwtAuthenticationFilter(
             JwtService jwtService,
             UserRepository userRepository
     ) {
-        this.jwtService = jwtService;
-        this.userRepository = userRepository;
+
+        this.jwtService =
+                jwtService;
+
+        this.userRepository =
+                userRepository;
     }
+
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
+    protected boolean shouldNotFilter(
+            HttpServletRequest request
+    ) {
 
-        String path = request.getServletPath();
+        String path =
+                request.getServletPath();
 
-        return path.equals("/api/health")
-                || path.equals("/api/auth/login")
-                || path.equals("/api/auth/register");
+        return path.equals(
+                "/api/health"
+        )
+                || path.equals(
+                "/api/auth/login"
+        )
+                || path.equals(
+                "/api/auth/register"
+        );
     }
+
 
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain
-    ) throws ServletException, IOException {
+    )
+            throws ServletException, IOException {
+
 
         String authorizationHeader =
-                request.getHeader("Authorization");
+                request.getHeader(
+                        "Authorization"
+                );
 
-        if (authorizationHeader == null
-                || !authorizationHeader.startsWith("Bearer ")) {
 
-            filterChain.doFilter(request, response);
+        // ====================================
+        // NO TOKEN
+        // ====================================
+
+        if (
+                authorizationHeader == null
+                        ||
+                        !authorizationHeader.startsWith(
+                                "Bearer "
+                        )
+        ) {
+
+            filterChain.doFilter(
+                    request,
+                    response
+            );
+
             return;
         }
 
-        String token = authorizationHeader.substring(7);
+
+        String token =
+                authorizationHeader.substring(
+                        7
+                );
+
 
         try {
-            String email = jwtService.extractEmail(token);
 
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() ->
-                            new RuntimeException("User not found")
+            // ==================================
+            // EXTRACT EMAIL
+            // ==================================
+
+            String email =
+                    jwtService.extractEmail(
+                            token
                     );
 
-            if (jwtService.isTokenValid(token, user.getEmail())) {
 
-                SimpleGrantedAuthority authority =
-                        new SimpleGrantedAuthority(
-                                "ROLE_" + user.getRole().name()
-                        );
+            // ==================================
+            // FIND USER
+            // ==================================
 
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                user.getEmail(),
-                                null,
-                                List.of(authority)
-                        );
+            User user =
+                    userRepository
+                            .findByEmail(email)
+                            .orElseThrow(
+                                    () ->
+                                            new RuntimeException(
+                                                    "User not found"
+                                            )
+                            );
 
-                SecurityContextHolder
-                        .getContext()
-                        .setAuthentication(authentication);
+
+            // ==================================
+            // VALIDATE TOKEN
+            // ==================================
+
+            if (
+                    !jwtService.isTokenValid(
+                            token,
+                            user.getEmail()
+                    )
+            ) {
+
+                throw new RuntimeException(
+                        "Invalid token"
+                );
             }
+
+
+            // ==================================
+            // ROLE
+            // ==================================
+
+            String authorityName =
+                    "ROLE_" +
+                            user.getRole().name();
+
+
+            // ==================================
+            // DEBUG LOG
+            // ==================================
+
+            System.out.println(
+                    "================================"
+            );
+
+            System.out.println(
+                    "JWT USER      : " +
+                            user.getEmail()
+            );
+
+            System.out.println(
+                    "JWT ROLE      : " +
+                            user.getRole().name()
+            );
+
+            System.out.println(
+                    "JWT AUTHORITY : " +
+                            authorityName
+            );
+
+            System.out.println(
+                    "REQUEST       : " +
+                            request.getMethod() +
+                            " " +
+                            request.getRequestURI()
+            );
+
+            System.out.println(
+                    "================================"
+            );
+
+
+            // ==================================
+            // AUTHORITY
+            // ==================================
+
+            SimpleGrantedAuthority authority =
+                    new SimpleGrantedAuthority(
+                            authorityName
+                    );
+
+
+            // ==================================
+            // AUTHENTICATION
+            // ==================================
+
+            UsernamePasswordAuthenticationToken
+                    authentication =
+                    new UsernamePasswordAuthenticationToken(
+                            user.getEmail(),
+                            null,
+                            List.of(authority)
+                    );
+
+
+            SecurityContextHolder
+                    .getContext()
+                    .setAuthentication(
+                            authentication
+                    );
+
 
         } catch (Exception exception) {
 
-            SecurityContextHolder.clearContext();
+            SecurityContextHolder
+                    .clearContext();
+
 
             response.setStatus(
                     HttpServletResponse.SC_UNAUTHORIZED
             );
 
-            response.setContentType("application/json");
+            response.setContentType(
+                    "application/json"
+            );
+
 
             response.getWriter().write(
                     "{\"message\":\"Invalid or expired token\"}"
@@ -102,6 +239,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        filterChain.doFilter(request, response);
+
+        filterChain.doFilter(
+                request,
+                response
+        );
     }
 }
