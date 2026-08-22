@@ -28,30 +28,44 @@ public class AuthServiceImpl implements AuthService {
         this.jwtService = jwtService;
     }
 
+    // ==============================
+    // REGISTER USER
+    // ==============================
     @Override
     public User registerUser(RegisterRequest request) {
 
+        // Check if email already exists
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new EmailAlreadyExistsException(
                     "Email already registered"
             );
         }
 
+        // Create new user
         User user = new User();
 
         user.setFullName(request.getFullName());
+
         user.setEmail(request.getEmail());
+
+        // Encode password using BCrypt
         user.setPassword(
                 passwordEncoder.encode(request.getPassword())
         );
+
         user.setRole(request.getRole());
 
+        // Save user to database
         return userRepository.save(user);
     }
 
+    // ==============================
+    // LOGIN USER
+    // ==============================
     @Override
     public LoginResponse loginUser(LoginRequest request) {
 
+        // Find user by email
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() ->
                         new RuntimeException(
@@ -59,6 +73,7 @@ public class AuthServiceImpl implements AuthService {
                         )
                 );
 
+        // Verify password
         boolean passwordMatches = passwordEncoder.matches(
                 request.getPassword(),
                 user.getPassword()
@@ -70,11 +85,17 @@ public class AuthServiceImpl implements AuthService {
             );
         }
 
+        // Generate JWT token
         String token = jwtService.generateToken(
                 user.getEmail()
         );
 
+        // Return user details + JWT
         return new LoginResponse(
+                user.getId(),
+                user.getFullName(),
+                user.getEmail(),
+                user.getRole().name(),
                 token,
                 "Login Successful"
         );

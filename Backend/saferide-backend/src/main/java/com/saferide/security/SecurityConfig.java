@@ -32,15 +32,25 @@ public class SecurityConfig {
             throws Exception {
 
         http
+                // Disable CSRF because this is a stateless JWT-based REST API
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                // Enable CORS
+                .cors(cors ->
+                        cors.configurationSource(corsConfigurationSource())
                 )
 
+                // JWT authentication is stateless
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        )
+                )
+
+                // Authorization rules
                 .authorizeHttpRequests(auth -> auth
 
+                        // Public endpoints
                         .requestMatchers(
                                 "/api/health",
                                 "/api/auth/register",
@@ -53,14 +63,23 @@ public class SecurityConfig {
                                 "/v3/api-docs"
                         ).permitAll()
 
+                        // Allow CORS preflight requests
+                        .requestMatchers(
+                                HttpMethod.OPTIONS,
+                                "/**"
+                        ).permitAll()
+
+                        // Admin-only ride creation
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/rides"
                         ).hasAuthority("ROLE_ADMIN")
 
+                        // Everything else requires authentication
                         .anyRequest().authenticated()
                 )
 
+                // JWT filter
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class
@@ -69,15 +88,26 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * CORS configuration
+     *
+     * Frontend:
+     * http://localhost:3000
+     *
+     * Backend:
+     * http://localhost:8081
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration configuration = new CorsConfiguration();
 
+        // React/Vite frontend URL
         configuration.setAllowedOrigins(List.of(
-                "http://localhost:5173"
+                "http://localhost:3000"
         ));
 
+        // Allowed HTTP methods
         configuration.setAllowedMethods(List.of(
                 "GET",
                 "POST",
@@ -87,17 +117,27 @@ public class SecurityConfig {
                 "OPTIONS"
         ));
 
+        // Allow all request headers
         configuration.setAllowedHeaders(List.of("*"));
+
+        // Allow cookies/authorization credentials
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
 
-        source.registerCorsConfiguration("/**", configuration);
+        // Apply CORS configuration to all API endpoints
+        source.registerCorsConfiguration(
+                "/**",
+                configuration
+        );
 
         return source;
     }
 
+    /**
+     * Password encoder used for BCrypt password hashing.
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
